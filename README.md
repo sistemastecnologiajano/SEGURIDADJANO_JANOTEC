@@ -1,2 +1,2 @@
-# SEGURIDADJNAO_JANOTEC
+# SEGURIDADJANO_JANOTEC
 Comunidad tecnológica 
