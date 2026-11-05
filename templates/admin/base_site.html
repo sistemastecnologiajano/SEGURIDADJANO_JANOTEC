@@ -1,0 +1,24 @@
+{% extends "admin/base.html" %}
+{% load static %}
+
+{% block title %}{{ title }} · {{ site_title|default:"Gestión TIC" }}{% endblock %}
+
+{% block branding %}
+<div id="site-name">
+  <a href="{% url 'admin:index' %}">
+    <span class="jano-marca jano-marca--admin jano-marca--invertida">
+      <img src="{% static 'nucleo/img/icono_jano.png' %}" alt="Seguridad JANO" class="jano-marca__icono">
+      <span class="jano-marca__texto"><small>Seguridad</small><strong>JANO</strong></span>
+    </span>
+    <span class="admin-subtitulo">Gestión TIC — panel de administración</span>
+  </a>
+</div>
+{% endblock %}
+
+{% block extrastyle %}
+  {{ block.super }}
+  <link rel="stylesheet" href="{% static 'nucleo/css/brand.css' %}">
+  <link rel="stylesheet" href="{% static 'admin/css/custom_admin.css' %}">
+{% endblock %}
+
+{% block nav-global %}{% endblock %}

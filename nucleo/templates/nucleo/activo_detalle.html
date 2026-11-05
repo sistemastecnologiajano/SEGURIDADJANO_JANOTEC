@@ -1,0 +1,57 @@
+{% extends "nucleo/base.html" %}
+{% block titulo %}{{ activo.servicio }}{% endblock %}
+{% block contenido %}
+<a href="{% url 'activo_lista' %}" class="d-inline-block mb-2 text-decoration-none">&larr; Volver a Activos críticos</a>
+<div class="d-flex justify-content-between align-items-start mb-3">
+  <div>
+    <h3>{{ activo.id_servicio }} — {{ activo.servicio }}</h3>
+    <span class="badge bg-secondary">{{ activo.estado_validacion }}</span>
+  </div>
+  {% if puede_gestionar_activos %}
+  <a href="{% url 'activo_editar' activo.id_servicio %}" class="btn btn-outline-primary">Editar</a>
+  {% endif %}
+</div>
+
+<div class="row g-3">
+  <div class="col-md-7">
+    <div class="card p-3">
+      <dl class="row mb-0">
+        <dt class="col-sm-4">Categoría</dt><dd class="col-sm-8">{{ activo.categoria|default:"—" }}</dd>
+        <dt class="col-sm-4">Criticidad</dt><dd class="col-sm-8">{{ activo.criticidad|default:"—" }}</dd>
+        <dt class="col-sm-4">Tier</dt><dd class="col-sm-8">{{ activo.tier|default:"—" }}</dd>
+        <dt class="col-sm-4">RTO / RPO</dt><dd class="col-sm-8">{{ activo.rto|default:"—" }} / {{ activo.rpo|default:"—" }}</dd>
+        <dt class="col-sm-4">Depende de</dt><dd class="col-sm-8">{{ activo.depende_de|default:"—" }}</dd>
+        <dt class="col-sm-4">Control / mitigación</dt><dd class="col-sm-8">{{ activo.control_mitigacion|linebreaksbr|default:"—" }}</dd>
+        <dt class="col-sm-4">Responsable</dt><dd class="col-sm-8">{{ activo.responsable|default:"—" }}</dd>
+        <dt class="col-sm-4">Frecuencia de validación</dt><dd class="col-sm-8">{{ activo.frecuencia_validacion|default:"—" }}</dd>
+        <dt class="col-sm-4">Última validación</dt><dd class="col-sm-8">{{ activo.ultima_validacion|date:"d/m/Y"|default:"—" }}</dd>
+        <dt class="col-sm-4">Próxima validación</dt><dd class="col-sm-8">{{ activo.proxima_validacion|date:"d/m/Y"|default:"—" }}</dd>
+        <dt class="col-sm-4">Proyecto asociado</dt>
+        <dd class="col-sm-8">{% if activo.proyecto_asociado %}<a href="{% url 'actividad_detalle' activo.proyecto_asociado_id %}">{{ activo.proyecto_asociado }}</a>{% else %}—{% endif %}</dd>
+        <dt class="col-sm-4">Proveedor / ubicación</dt><dd class="col-sm-8">{{ activo.proveedor|default:"—" }} / {{ activo.ubicacion|default:"—" }}</dd>
+        <dt class="col-sm-4">Observación</dt><dd class="col-sm-8">{{ activo.observacion|linebreaksbr|default:"—" }}</dd>
+      </dl>
+    </div>
+  </div>
+  <div class="col-md-5">
+    <div class="card p-3">
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <h6 class="mb-0">Validaciones</h6>
+        <a href="{% url 'validacion_nueva' %}?activo={{ activo.id_servicio }}" class="btn btn-sm btn-primary">+ Nueva</a>
+      </div>
+      <ul class="list-group">
+        {% for v in validaciones %}
+          <li class="list-group-item">
+            <div class="d-flex justify-content-between">
+              <a href="{% url 'validacion_editar' v.id_validacion %}">{{ v.fecha_validacion|date:"d/m/Y" }} — {{ v.tipo_validacion|default:"—" }}</a>
+              <span class="badge {% if v.resultado == 'Fallo' %}bg-danger{% else %}bg-success{% endif %}">{{ v.resultado|default:"—" }}</span>
+            </div>
+          </li>
+        {% empty %}
+          <li class="list-group-item text-muted">Sin validaciones registradas.</li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+</div>
+{% endblock %}

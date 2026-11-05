@@ -1,0 +1,52 @@
+{% extends "nucleo/base.html" %}
+{% block titulo %}{{ sub.nombre }}{% endblock %}
+{% block contenido %}
+<a href="{% url 'subactividad_lista' %}" class="d-inline-block mb-2 text-decoration-none">&larr; Volver a Subactividades</a>
+<div class="d-flex justify-content-between align-items-start mb-3">
+  <div>
+    <h3>{{ sub.id_detalle }} — {{ sub.nombre }}</h3>
+    <p class="text-muted">Actividad padre: <a href="{% url 'actividad_detalle' sub.actividad_id %}">{{ sub.actividad }}</a></p>
+  </div>
+  <div>
+    <a href="{% url 'subactividad_editar' sub.id_detalle %}" class="btn btn-outline-primary">Editar</a>
+    <a href="{% url 'subactividad_eliminar' sub.id_detalle %}" class="btn btn-outline-danger">Eliminar</a>
+  </div>
+</div>
+
+<div class="row g-3">
+  <div class="col-md-7">
+    <div class="card p-3">
+      <dl class="row mb-0">
+        <dt class="col-sm-4">Responsable</dt><dd class="col-sm-8">{{ sub.responsable|default:"—" }}</dd>
+        <dt class="col-sm-4">Estado</dt><dd class="col-sm-8">{{ sub.estado|default:"—" }}</dd>
+        <dt class="col-sm-4">Fecha inicio</dt><dd class="col-sm-8">{{ sub.fecha_inicio|date:"d/m/Y"|default:"—" }}</dd>
+        <dt class="col-sm-4">Fecha compromiso</dt><dd class="col-sm-8">{{ sub.fecha_compromiso|date:"d/m/Y"|default:"—" }}</dd>
+        <dt class="col-sm-4">Fecha fin</dt><dd class="col-sm-8">{{ sub.fecha_fin|date:"d/m/Y"|default:"—" }}</dd>
+        <dt class="col-sm-4">% Avance actual</dt><dd class="col-sm-8">{{ sub.avance_pct }}%</dd>
+        <dt class="col-sm-4">Evidencia</dt>
+        <dd class="col-sm-8">{% if sub.evidencia %}<a href="{{ sub.evidencia.url }}" target="_blank" rel="noopener">Ver evidencia</a>{% else %}—{% endif %}</dd>
+        <dt class="col-sm-4">Observación</dt><dd class="col-sm-8">{{ sub.observacion|linebreaksbr|default:"—" }}</dd>
+      </dl>
+    </div>
+  </div>
+  <div class="col-md-5">
+    <div class="card p-3">
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <h6 class="mb-0">Historial de avance</h6>
+        <a href="{% url 'avance_subactividad_nuevo' sub.id_detalle %}" class="btn btn-sm btn-primary">+ Registrar avance</a>
+      </div>
+      <ul class="list-group">
+        {% for av in avances %}
+          <li class="list-group-item">
+            <div class="d-flex justify-content-between"><strong>{{ av.avance_acumulado }}%</strong><span class="text-muted small">{{ av.fecha_avance|date:"d/m/Y" }}</span></div>
+            {% if av.nota %}<div class="small">{{ av.nota }}</div>{% endif %}
+            {% if av.evidencia %}<a href="{{ av.evidencia.url }}" target="_blank" rel="noopener" class="small">Ver evidencia</a>{% endif %}
+          </li>
+        {% empty %}
+          <li class="list-group-item text-muted">Sin avances registrados.</li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+</div>
+{% endblock %}

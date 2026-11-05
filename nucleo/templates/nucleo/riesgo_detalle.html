@@ -1,0 +1,33 @@
+{% extends "nucleo/base.html" %}
+{% block titulo %}{{ riesgo.nombre }}{% endblock %}
+{% block contenido %}
+<a href="{% url 'riesgo_lista' %}" class="d-inline-block mb-2 text-decoration-none">&larr; Volver a Gestión de riesgos</a>
+<div class="d-flex justify-content-between align-items-start mb-3">
+  <h3>{{ riesgo.codigo }} — {{ riesgo.nombre }}</h3>
+  <a href="{% url 'riesgo_editar' riesgo.codigo %}" class="btn btn-outline-primary">Editar</a>
+</div>
+<div class="row g-3">
+  <div class="col-md-6">
+    <div class="card p-3">
+      <dl class="row mb-0">
+        <dt class="col-sm-4">Nivel</dt><dd class="col-sm-8">{{ riesgo.nivel|default:"—" }}</dd>
+        <dt class="col-sm-4">Categoría DOFA</dt><dd class="col-sm-8">{{ riesgo.categoria_dofa|default:"—" }}</dd>
+        <dt class="col-sm-4">Referencia externa</dt><dd class="col-sm-8">{{ riesgo.referencia_matriz_externa|default:"—" }}</dd>
+        <dt class="col-sm-4">Descripción</dt><dd class="col-sm-8">{{ riesgo.descripcion|linebreaksbr|default:"—" }}</dd>
+      </dl>
+    </div>
+  </div>
+  <div class="col-md-6">
+    <div class="card p-3">
+      <h6>Actividades/proyectos asociados</h6>
+      <ul class="list-group">
+        {% for a in actividades %}
+          <li class="list-group-item"><a href="{% url 'actividad_detalle' a.id %}">{{ a.id }} — {{ a.nombre }}</a></li>
+        {% empty %}
+          <li class="list-group-item text-muted">Ninguna actividad tiene este código de riesgo asociado todavía.</li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+</div>
+{% endblock %}

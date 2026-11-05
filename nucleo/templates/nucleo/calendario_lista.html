@@ -1,0 +1,75 @@
+{% extends "nucleo/base.html" %}
+{% block titulo %}Calendario{% endblock %}
+{% block contenido %}
+<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+  <div class="d-flex align-items-center gap-2">
+    <a class="btn btn-outline-secondary btn-sm" href="?anio={{ mes_anterior.0 }}&mes={{ mes_anterior.1 }}">‹ anterior</a>
+    <h4 class="mb-0 text-capitalize">{{ nombre_mes }} {{ anio }}</h4>
+    <a class="btn btn-outline-secondary btn-sm" href="?anio={{ mes_siguiente.0 }}&mes={{ mes_siguiente.1 }}">siguiente ›</a>
+    <a class="btn btn-outline-primary btn-sm" href="?anio={{ hoy.year }}&mes={{ hoy.month }}">hoy</a>
+  </div>
+  <a href="{% url 'calendario_nueva' %}" class="btn btn-primary">+ Nueva tarea</a>
+</div>
+
+<div class="card p-2">
+  <table class="table table-bordered mb-0" style="table-layout: fixed;">
+    <thead>
+      <tr>
+        {% for d in dias_semana %}<th class="text-center text-uppercase small">{{ d }}</th>{% endfor %}
+      </tr>
+    </thead>
+    <tbody>
+      {% for semana in semanas %}
+      <tr style="height: 110px;">
+        {% for dia in semana %}
+        <td class="align-top p-1 {% if not dia.en_mes %}bg-light text-muted{% endif %} {% if dia.es_hoy %}border border-2{% endif %}"
+            style="{% if dia.es_hoy %}border-color: var(--jano-verde, #A6CE38) !important;{% endif %}">
+          <div class="d-flex justify-content-between">
+            <span class="small {% if dia.es_hoy %}fw-bold text-primary{% endif %}">{{ dia.fecha.day }}</span>
+          </div>
+          {% for t in dia.tareas %}
+            <a href="{% url 'calendario_editar' t.id %}"
+               class="d-block small text-truncate rounded px-1 mb-1 text-decoration-none"
+               style="background: {% if t.estado == 'Hecha' %}#e9ecef{% elif t.vencida %}#f8d7da{% else %}#dfe3fb{% endif %};
+                      color: {% if t.estado == 'Hecha' %}#6c757d{% else %}#2E3092{% endif %};
+                      {% if t.estado == 'Hecha' %}text-decoration: line-through;{% endif %}"
+               title="{{ t.titulo }}{% if t.responsable %} — {{ t.responsable }}{% endif %}">
+              {{ t.titulo }}
+            </a>
+          {% endfor %}
+        </td>
+        {% endfor %}
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<div class="card p-3 mt-3">
+  <h6>Tareas de este mes</h6>
+  <table class="table table-sm table-hover mb-0 tabla-ordenable">
+    <thead><tr><th></th><th>Fecha</th><th>Título</th><th>Responsable</th><th>Estado</th><th></th></tr></thead>
+    <tbody>
+      {% for semana in semanas %}{% for dia in semana %}{% if dia.en_mes %}{% for t in dia.tareas %}
+      <tr {% if t.vencida %}class="table-danger"{% endif %}>
+        <td>
+          <form method="post" action="{% url 'calendario_marcar' t.id %}">
+            {% csrf_token %}
+            <input type="checkbox" class="form-check-input" onchange="this.form.submit()" {% if t.estado == 'Hecha' %}checked{% endif %}>
+          </form>
+        </td>
+        <td data-orden="{{ t.fecha|date:'Y-m-d' }}">{{ t.fecha|date:"d/m/Y" }}</td>
+        <td class="{% if t.estado == 'Hecha' %}text-decoration-line-through text-muted{% endif %}">{{ t.titulo }}</td>
+        <td>{{ t.responsable|default:"—" }}</td>
+        <td>
+          <span class="badge {% if t.estado == 'Hecha' %}bg-success{% elif t.vencida %}bg-danger{% else %}bg-secondary{% endif %}">
+            {% if t.vencida %}Vencida{% else %}{{ t.estado }}{% endif %}
+          </span>
+        </td>
+        <td><a href="{% url 'calendario_editar' t.id %}" class="btn btn-sm btn-outline-primary">Editar</a></td>
+      </tr>
+      {% endfor %}{% endif %}{% endfor %}{% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

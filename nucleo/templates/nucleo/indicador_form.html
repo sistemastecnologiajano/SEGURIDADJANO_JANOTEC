@@ -1,0 +1,41 @@
+{% extends "nucleo/base.html" %}
+{% block titulo %}{% if indicador %}Editar indicador{% else %}Nuevo indicador{% endif %}{% endblock %}
+{% block contenido %}
+<h3 class="mb-3">{% if indicador %}Editar indicador{% else %}Nuevo indicador{% endif %}</h3>
+<form method="post">
+  {% csrf_token %}
+  <div class="card p-3 mb-3">
+    <div class="row g-3">
+      <div class="col-12">
+        <label class="form-label">Nombre</label>{{ form.nombre }}
+      </div>
+      <div class="col-12">
+        <label class="form-label">Descripción</label>{{ form.descripcion }}
+        <div class="form-text">Qué mide este indicador — aparece como ayuda al registrar cada periodo.</div>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Tipo</label>{{ form.tipo }}
+        <div class="form-text">"Manual" en casi todos los casos: tú escribes el valor logrado cada periodo.</div>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Periodicidad</label>{{ form.periodicidad }}
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Unidad</label>{{ form.unidad }}
+        <div class="form-text">Ej. "%" o "validaciones".</div>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Orden en el listado</label>{{ form.orden }}
+      </div>
+      <div class="col-md-4 d-flex align-items-end">
+        <div class="form-check">
+          {{ form.activo }}
+          <label class="form-check-label">Activo (visible en el listado)</label>
+        </div>
+      </div>
+    </div>
+  </div>
+  <button type="submit" class="btn btn-primary">Guardar</button>
+  <a href="{% if indicador %}{% url 'indicador_detalle' indicador.pk %}{% else %}{% url 'indicador_lista' %}{% endif %}" class="btn btn-outline-secondary">Cancelar</a>
+</form>
+{% endblock %}

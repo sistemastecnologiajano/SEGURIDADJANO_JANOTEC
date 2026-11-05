@@ -1,0 +1,91 @@
+{% extends "nucleo/base.html" %}
+{% block titulo %}Seguimiento{% endblock %}
+{% block contenido %}
+<div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
+  <h3>Seguimiento</h3>
+  <div class="text-muted small">
+    Actividades sin revisar: <strong>{{ actividades_sin_revisar }}</strong>
+    &nbsp;·&nbsp; Validaciones sin revisar: <strong>{{ validaciones_sin_revisar }}</strong>
+  </div>
+</div>
+<p class="text-muted">
+  Aquí el jefe revisa las actividades y validaciones, y con el botón "Revisar" les da validez (equivalente a la
+  firma que se usaba antes).
+  {% if not es_jefe %}<span class="text-danger">Tu usuario no pertenece al grupo "Jefe": puedes ver esta lista pero no revisar.</span>{% endif %}
+</p>
+
+<ul class="nav nav-tabs pestanas-seguimiento mb-3">
+  <li class="nav-item">
+    <a class="nav-link {% if tab == 'pendientes' %}active{% endif %}" href="?tab=pendientes{% if q %}&q={{ q }}{% endif %}">Pendientes</a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link {% if tab == 'revisadas' %}active{% endif %}" href="?tab=revisadas{% if q %}&q={{ q }}{% endif %}">Revisadas</a>
+  </li>
+</ul>
+
+<form method="get" class="row g-2 mb-3">
+  <input type="hidden" name="tab" value="{{ tab }}">
+  <div class="col-md-4">
+    <input type="text" name="q" value="{{ q }}" class="form-control" placeholder="Buscar por nombre o servicio...">
+  </div>
+  <div class="col-md-2"><button class="btn btn-outline-secondary w-100">Buscar</button></div>
+</form>
+
+<div class="card mb-4">
+  <div class="card-header bg-white"><strong>Actividades</strong></div>
+  <table class="table table-hover mb-0 tabla-ordenable">
+    <thead><tr><th>ID</th><th>Nombre</th><th>Responsable</th><th>Estado</th><th></th></tr></thead>
+    <tbody>
+      {% for a in actividades %}
+      <tr>
+        <td><a href="{% url 'actividad_detalle' a.id %}">{{ a.id }}</a></td>
+        <td>{{ a.nombre }}</td>
+        <td>{{ a.responsable|default:"—" }}</td>
+        <td><span class="badge bg-secondary">{{ a.estado|default:"—" }}</span></td>
+        <td class="text-end" data-no-ordenar>
+          {% if es_jefe %}
+          <form method="post" action="{% url 'revisar_actividad' a.id %}?tab={{ tab }}">
+            {% csrf_token %}
+            <button class="btn btn-sm {% if tab == 'revisadas' %}btn-outline-secondary{% else %}btn-success{% endif %}">
+              {% if tab == 'revisadas' %}Deshacer{% else %}Revisar{% endif %}
+            </button>
+          </form>
+          {% endif %}
+        </td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="5" class="text-center text-muted py-3">Sin registros.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<div class="card">
+  <div class="card-header bg-white"><strong>Validaciones</strong></div>
+  <table class="table table-hover mb-0 tabla-ordenable">
+    <thead><tr><th>ID</th><th>Servicio</th><th>Fecha</th><th>Resultado</th><th></th></tr></thead>
+    <tbody>
+      {% for v in validaciones %}
+      <tr>
+        <td><a href="{% url 'validacion_editar' v.id_validacion %}">{{ v.id_validacion }}</a></td>
+        <td>{{ v.activo.servicio }}</td>
+        <td data-orden="{{ v.fecha_validacion|date:'Y-m-d' }}">{{ v.fecha_validacion|date:"d/m/Y" }}</td>
+        <td><span class="badge {% if v.resultado == 'Fallo' %}bg-danger{% else %}bg-success{% endif %}">{{ v.resultado|default:"—" }}</span></td>
+        <td class="text-end" data-no-ordenar>
+          {% if es_jefe %}
+          <form method="post" action="{% url 'revisar_validacion' v.id_validacion %}?tab={{ tab }}">
+            {% csrf_token %}
+            <button class="btn btn-sm {% if tab == 'revisadas' %}btn-outline-secondary{% else %}btn-success{% endif %}">
+              {% if tab == 'revisadas' %}Deshacer{% else %}Revisar{% endif %}
+            </button>
+          </form>
+          {% endif %}
+        </td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="5" class="text-center text-muted py-3">Sin registros.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

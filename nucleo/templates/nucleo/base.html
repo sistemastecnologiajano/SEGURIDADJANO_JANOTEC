@@ -1,0 +1,113 @@
+<!doctype html>
+{% load static %}
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block titulo %}Gestión TIC{% endblock %} · Seguridad JANO</title>
+  <link href="{% static 'vendor/bootstrap/css/bootstrap.min.css' %}" rel="stylesheet">
+  <link href="{% static 'nucleo/css/brand.css' %}" rel="stylesheet">
+  {% block extra_css %}{% endblock %}
+</head>
+<body>
+<div class="layout-app">
+  {% if user.is_authenticated %}
+  <aside class="sidebar">
+    <div class="sidebar__marca">
+      <a href="{% url 'dashboard' %}" class="text-decoration-none jano-marca">
+        <img src="{% static 'nucleo/img/icono_jano.png' %}" alt="Seguridad JANO" class="jano-marca__icono">
+        <span class="jano-marca__texto"><small>Seguridad</small><strong>JANO</strong></span>
+      </a>
+      <div class="small mt-1" style="opacity:.75;">Gestión TIC</div>
+    </div>
+    <nav class="sidebar__nav nav flex-column">
+      <a class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}" href="{% url 'dashboard' %}">
+        <span>Dashboard</span>
+      </a>
+
+      <div class="nav-separador">Actividades</div>
+      <a class="nav-link {% if request.resolver_match.url_name in 'actividad_lista,actividad_detalle,actividad_nueva,actividad_editar' %}active{% endif %}" href="{% url 'actividad_lista' %}">
+        <span>Actividades</span>
+      </a>
+      <a class="nav-link {% if 'subactividad' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'subactividad_lista' %}">
+        <span>Subactividades</span>
+      </a>
+      <a class="nav-link proyecto-mayuscula {% if 'proyecto' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'proyecto_lista' %}">
+        <span>PROYECTOS</span>
+      </a>
+
+      <div class="nav-separador">Activos y validaciones</div>
+      <a class="nav-link {% if request.resolver_match.url_name in 'activo_lista,activo_detalle,activo_nuevo,activo_editar' %}active{% endif %}" href="{% url 'activo_lista' %}">
+        <span>Activos críticos</span>
+      </a>
+      <a class="nav-link {% if 'validacion' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'validacion_lista' %}">
+        <span>Validaciones</span>
+      </a>
+
+      <div class="nav-separador">Calendario</div>
+      <a class="nav-link {% if request.resolver_match.url_name == 'calendario_lista' %}active{% endif %}" href="{% url 'calendario_lista' %}">
+        <span>Calendario</span>
+      </a>
+
+      <div class="nav-separador">Indicadores</div>
+      <a class="nav-link {% if 'indicador' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'indicador_lista' %}">
+        <span>Indicadores</span>
+      </a>
+
+      <div class="nav-separador">Seguimiento y riesgos</div>
+      <a class="nav-link {% if request.resolver_match.url_name == 'seguimiento' or 'revisar' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'seguimiento' %}">
+        <span>Seguimiento</span>
+        {% if pendientes_seguimiento_nav %}<span class="badge-pendientes">{{ pendientes_seguimiento_nav }}</span>{% endif %}
+      </a>
+      <a class="nav-link {% if 'riesgo' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'riesgo_lista' %}">
+        <span>Gestión de riesgos</span>
+      </a>
+
+      <div class="nav-separador">Auditoría</div>
+      <a class="nav-link {% if request.resolver_match.url_name == 'auditoria_lista' %}active{% endif %}" href="{% url 'auditoria_lista' %}">
+        <span>Auditoría</span>
+      </a>
+
+      {% if user.is_staff %}
+      <div class="nav-separador">Administración</div>
+      <a class="nav-link" href="/admin/" target="_blank" rel="noopener">
+        <span>Administración</span>
+      </a>
+      {% endif %}
+    </nav>
+    <div class="sidebar__pie">
+      <div class="text-truncate">{{ user.get_full_name|default:user.get_username }}</div>
+      <form method="post" action="{% url 'logout' %}" class="mt-2">
+        {% csrf_token %}
+        <button class="btn btn-outline-secondary btn-sm w-100" type="submit">Salir</button>
+      </form>
+    </div>
+  </aside>
+  {% endif %}
+
+  <div class="contenido-app">
+    {% if user.is_authenticated %}
+    <div class="barra-superior">
+      <a href="{% url 'dashboard' %}" class="btn-menu-principal">⌂ Volver al menú principal</a>
+      <span class="text-muted small d-none d-md-inline">{% block titulo_barra %}{% endblock %}</span>
+    </div>
+    {% endif %}
+    <div class="container-fluid py-4">
+      {% if messages %}
+        {% for message in messages %}
+          <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+          </div>
+        {% endfor %}
+      {% endif %}
+      {% block contenido %}{% endblock %}
+    </div>
+  </div>
+</div>
+
+<script src="{% static 'vendor/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
+<script src="{% static 'nucleo/js/tabla.js' %}"></script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,82 @@
+{% extends "nucleo/base.html" %}
+{% block titulo %}{% if actividad %}Editar actividad{% else %}Nueva actividad{% endif %}{% endblock %}
+{% block contenido %}
+<h3 class="mb-3">{% if actividad %}Editar actividad {{ actividad.id }}{% else %}Nueva actividad{% endif %}</h3>
+<form method="post" enctype="multipart/form-data">
+  {% csrf_token %}
+  <div class="card p-3 mb-3">
+    <div class="row g-3">
+      <div class="col-md-6">
+        <label class="form-label">Línea de gestión</label>{{ form.linea_gestion }}
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">Actividad / Proyecto</label>{{ form.nombre }}
+        <div class="form-text">Si el nombre empieza con la palabra "PROYECTO", se mostrará automáticamente en el módulo de Proyectos.</div>
+      </div>
+      <div class="col-12">
+        <label class="form-label">Descripción</label>{{ form.descripcion }}
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Responsable</label>{{ form.responsable }}
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Prioridad</label>{{ form.prioridad }}
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Estado</label>{{ form.estado }}
+      </div>
+      <div class="col-md-3">
+        <label class="form-label">Fecha inicio</label>{{ form.fecha_inicio }}
+      </div>
+      <div class="col-md-3">
+        <label class="form-label">Fecha compromiso</label>{{ form.fecha_compromiso }}
+      </div>
+      <div class="col-md-3">
+        <label class="form-label">Fecha final</label>{{ form.fecha_final }}
+      </div>
+      <div class="col-md-3">
+        <label class="form-label">% Avance</label>{{ form.avance_pct }}
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">Relacionado con riesgos</label>{{ form.relacionado_con_riesgos }}
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">Códigos de riesgo asociados</label>{{ riesgos_form.codigos_riesgo }}
+      </div>
+      <div class="col-12">
+        <label class="form-label">Evidencia</label>{{ form.evidencia }}
+      </div>
+      <div class="col-12">
+        <label class="form-label">Observaciones</label>{{ form.observaciones }}
+      </div>
+    </div>
+  </div>
+
+  <div class="card p-3 mb-3">
+    <h6>Revisión</h6>
+    <div class="row g-3">
+      <div class="col-md-3">
+        <label class="form-label">Revisado por</label>{{ form.revisado_por }}
+      </div>
+      <div class="col-md-3">
+        <label class="form-label">Fecha de revisión</label>{{ form.fecha_revision }}
+      </div>
+      <div class="col-md-3">
+        <label class="form-label">Estado de revisión</label>{{ form.estado_revision }}
+      </div>
+      <div class="col-md-3">
+        <label class="form-label">Código SEIF</label>{{ form.codigo_seif }}
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">Link SEIF</label>{{ form.link_seif }}
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">Comentario</label>{{ form.comentario }}
+      </div>
+    </div>
+  </div>
+
+  <button type="submit" class="btn btn-primary">Guardar</button>
+  <a href="{% if actividad %}{% url 'actividad_detalle' actividad.id %}{% else %}{% url 'actividad_lista' %}{% endif %}" class="btn btn-outline-secondary">Cancelar</a>
+</form>
+{% endblock %}

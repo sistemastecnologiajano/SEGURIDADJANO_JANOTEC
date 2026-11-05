@@ -1,0 +1,66 @@
+{% extends "nucleo/base.html" %}
+{% block titulo %}{% if activo %}Editar activo{% else %}Nuevo activo{% endif %}{% endblock %}
+{% block contenido %}
+<h3 class="mb-3">{% if activo %}Editar activo {{ activo.id_servicio }}{% else %}Nuevo activo crítico{% endif %}</h3>
+<form method="post">
+  {% csrf_token %}
+  <div class="card p-3 mb-3">
+    <div class="row g-3">
+      <div class="col-md-6">
+        <label class="form-label">Servicio</label>{{ form.servicio }}
+      </div>
+      <div class="col-md-3">
+        <label class="form-label">Categoría</label>{{ form.categoria }}
+      </div>
+      <div class="col-md-3">
+        <label class="form-label">Criticidad</label>{{ form.criticidad }}
+      </div>
+      <div class="col-md-3">
+        <label class="form-label">Tier</label>{{ form.tier }}
+      </div>
+      <div class="col-md-3">
+        <label class="form-label">RTO</label>{{ form.rto }}
+      </div>
+      <div class="col-md-3">
+        <label class="form-label">RPO</label>{{ form.rpo }}
+      </div>
+      <div class="col-md-3">
+        <label class="form-label">Tipo de servicio</label>{{ form.tipo_servicio }}
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">Depende de</label>{{ form.depende_de }}
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">Control / mitigación</label>{{ form.control_mitigacion }}
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Responsable</label>{{ form.responsable }}
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Frecuencia de validación</label>{{ form.frecuencia_validacion }}
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Crítico desde</label>{{ form.critico_desde }}
+        <div class="form-text">Déjalo vacío si siempre ha sido crítico. Usado por el indicador de Activos Críticos.</div>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Estado actual</label>{{ form.estado_actual }}
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Proyecto asociado</label>{{ form.proyecto_asociado }}
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Proveedor</label>{{ form.proveedor }}
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Ubicación</label>{{ form.ubicacion }}
+      </div>
+      <div class="col-12">
+        <label class="form-label">Observación</label>{{ form.observacion }}
+      </div>
+    </div>
+  </div>
+  <button type="submit" class="btn btn-primary">Guardar</button>
+  <a href="{% if activo %}{% url 'activo_detalle' activo.id_servicio %}{% else %}{% url 'activo_lista' %}{% endif %}" class="btn btn-outline-secondary">Cancelar</a>
+</form>
+{% endblock %}

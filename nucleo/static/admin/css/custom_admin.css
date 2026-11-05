@@ -1,0 +1,119 @@
+/* Rediseño visual del admin de Django con colores institucionales
+   Seguridad JANO / JANOTEC (morado #2E3092, verde #A6CE38). */
+:root {
+  --primary: #2E3092;
+  --primary-fg: #fff;
+  --secondary: #22246e;
+  --accent: #A6CE38;
+  --link-fg: #2E3092;
+  --link-hover-color: #22246e;
+  --link-selected-fg: #A6CE38;
+  --header-color: #fff;
+  --object-tools-bg: #A6CE38;
+  --object-tools-fg: #2E3092;
+  --body-fg: #1f2330;
+  --body-bg: #f4f6f9;
+  --body-quiet-color: #5b606e;
+  --body-loud-color: #1f2330;
+  --hairline-color: #d8dbe2;
+  --border-color: #d8dbe2;
+  color-scheme: light only;
+}
+
+/* El admin de Django cambia a modo oscuro según el sistema/navegador de
+   la persona (fondo negro), lo que vuelve ilegible el morado institucional.
+   Se fuerza siempre el tema claro (fondo gris medio, letra negra) sin
+   importar la preferencia del sistema. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --primary: #2E3092;
+    --primary-fg: #fff;
+    --secondary: #22246e;
+    --accent: #A6CE38;
+    --link-fg: #2E3092;
+    --link-hover-color: #22246e;
+    --link-selected-fg: #A6CE38;
+    --header-color: #fff;
+    --body-fg: #1f2330;
+    --body-bg: #f4f6f9;
+    --body-quiet-color: #5b606e;
+    --body-loud-color: #1f2330;
+    --hairline-color: #d8dbe2;
+    --border-color: #d8dbe2;
+    --darkened-bg: #eceef2;
+    --selected-bg: #eef0fb;
+    --selected-row: #eef0fb;
+  }
+}
+html[data-theme="dark"] {
+  --primary: #2E3092;
+  --primary-fg: #fff;
+  --secondary: #22246e;
+  --accent: #A6CE38;
+  --link-fg: #2E3092;
+  --link-hover-color: #22246e;
+  --link-selected-fg: #A6CE38;
+  --header-color: #fff;
+  --body-fg: #1f2330;
+  --body-bg: #f4f6f9;
+  --body-quiet-color: #5b606e;
+  --body-loud-color: #1f2330;
+  --hairline-color: #d8dbe2;
+  --border-color: #d8dbe2;
+  --darkened-bg: #eceef2;
+  --selected-bg: #eef0fb;
+  --selected-row: #eef0fb;
+}
+
+#header {
+  background: var(--primary);
+  color: #fff;
+}
+#branding a, #branding a:link, #branding a:visited {
+  color: #fff;
+  text-decoration: none;
+}
+#site-name .jano-marca--admin { display: inline-flex; }
+.admin-subtitulo {
+  display: block;
+  font-size: .72rem;
+  font-weight: 400;
+  opacity: .85;
+  margin-left: 44px;
+}
+
+div.breadcrumbs {
+  background: var(--secondary);
+  color: #fff;
+}
+div.breadcrumbs a { color: var(--accent); }
+
+.module h2, .module caption, .inline-group h2 {
+  background: var(--primary);
+}
+
+a:link, a:visited { color: var(--primary); }
+
+.button, input[type=submit], input[type=button], .submit-row input, a.button {
+  background: var(--primary);
+  color: #fff;
+  border-radius: 4px;
+}
+.button:hover, input[type=submit]:hover, input[type=button]:hover {
+  background: var(--secondary);
+}
+.button.default, input[type=submit].default, .submit-row input.default {
+  background: var(--accent);
+  color: var(--primary);
+  font-weight: 700;
+}
+.button.default:hover, input[type=submit].default:hover {
+  opacity: .9;
+}
+
+#changelist-filter h2 {
+  background: var(--primary);
+  color: #fff;
+}
+
+.selector-chosen h2 { background: var(--primary); }

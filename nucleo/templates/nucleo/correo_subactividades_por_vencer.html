@@ -1,0 +1,28 @@
+<!doctype html>
+<html>
+<body style="font-family: Arial, sans-serif; color:#222;">
+  <h2 style="color:#0d2b4e;">Subactividades por vencer</h2>
+  <p>Generado automáticamente por la Plataforma de Gestión TIC.</p>
+  <table border="1" cellpadding="6" cellspacing="0" style="border-collapse:collapse; width:100%;">
+    <thead style="background:#0d2b4e; color:#fff;">
+      <tr>
+        <th align="left">Actividad</th>
+        <th align="left">Subactividad</th>
+        <th align="left">Responsable</th>
+        <th align="left">Fecha compromiso</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for s in subactividades %}
+      <tr style="background:{% if s.fecha_compromiso == hoy %}#fff3cd{% else %}#fff{% endif %};">
+        <td>{{ s.actividad.nombre }} ({{ s.actividad_id }})</td>
+        <td>{{ s.nombre }}</td>
+        <td>{{ s.responsable|default:"—" }}</td>
+        <td>{{ s.fecha_compromiso|date:"d/m/Y" }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <p style="margin-top:16px; font-size:12px; color:#777;">Plataforma de Gestión TIC — gestiontic.seguridadjano.com</p>
+</body>
+</html>

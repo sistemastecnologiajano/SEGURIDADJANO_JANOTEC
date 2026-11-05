@@ -1,0 +1,42 @@
+{% extends "nucleo/base.html" %}
+{% block titulo %}Actividades{% endblock %}
+{% block contenido %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h3>Actividades</h3>
+  <a href="{% url 'actividad_nueva' %}" class="btn btn-primary">+ Nueva actividad</a>
+</div>
+
+<form method="get" class="row g-2 mb-3">
+  <div class="col-md-4">
+    <input type="text" name="q" value="{{ q }}" class="form-control" placeholder="Buscar por nombre, ID o responsable...">
+  </div>
+  <div class="col-md-3">
+    <div class="form-check mt-2">
+      <input class="form-check-input" type="checkbox" name="proyectos" value="1" id="chkProyectos" {% if solo_proyectos %}checked{% endif %}>
+      <label class="form-check-label" for="chkProyectos">Solo PROYECTOS</label>
+    </div>
+  </div>
+  <div class="col-md-2"><button class="btn btn-outline-secondary w-100">Filtrar</button></div>
+</form>
+
+<input type="text" class="form-control mb-2" placeholder="Filtro rápido en esta página..." data-filtro-tabla="#tablaActividades">
+<div class="card">
+<table class="table table-hover mb-0 tabla-ordenable" id="tablaActividades">
+  <thead><tr><th>ID</th><th>Nombre</th><th>Responsable</th><th>Estado</th><th>% Avance</th><th>Compromiso</th></tr></thead>
+  <tbody>
+    {% for a in actividades %}
+    <tr>
+      <td><a href="{% url 'actividad_detalle' a.id %}">{{ a.id }}</a></td>
+      <td>{{ a.nombre }}{% if a.es_proyecto %} <span class="badge bg-info">PROYECTO</span>{% endif %}</td>
+      <td>{{ a.responsable }}</td>
+      <td><span class="badge bg-secondary badge-estado">{{ a.estado|default:"—" }}</span></td>
+      <td>{{ a.avance_pct }}%</td>
+      <td data-orden="{{ a.fecha_compromiso|date:'Y-m-d' }}">{{ a.fecha_compromiso|date:"d/m/Y"|default:"—" }}</td>
+    </tr>
+    {% empty %}
+    <tr><td colspan="6" class="text-center text-muted py-4">No hay actividades registradas.</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+</div>
+{% endblock %}

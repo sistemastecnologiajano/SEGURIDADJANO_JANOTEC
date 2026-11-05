@@ -1,0 +1,13 @@
+{% extends "nucleo/base.html" %}
+{% block titulo %}Confirmar eliminación{% endblock %}
+{% block contenido %}
+<div class="card p-4" style="max-width:500px;">
+  <h5>¿Eliminar este registro?</h5>
+  <p class="text-muted">{{ objeto }}</p>
+  <form method="post">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-danger">Sí, eliminar</button>
+    <a href="javascript:history.back()" class="btn btn-outline-secondary">Cancelar</a>
+  </form>
+</div>
+{% endblock %}

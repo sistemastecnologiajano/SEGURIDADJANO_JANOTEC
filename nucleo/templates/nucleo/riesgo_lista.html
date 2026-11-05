@@ -1,0 +1,42 @@
+{% extends "nucleo/base.html" %}
+{% block titulo %}Gestión de riesgos{% endblock %}
+{% block contenido %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h3>Gestión de riesgos</h3>
+  <a href="{% url 'riesgo_nuevo' %}" class="btn btn-primary">+ Nuevo riesgo</a>
+</div>
+<p class="text-muted">
+  Riesgos cargados manualmente desde la matriz de riesgos / DOFA, para asociarlos a actividades y proyectos
+  (igual que se venía haciendo antes, a propósito sin sincronizar con ningún archivo externo).
+</p>
+<form method="get" class="row g-2 mb-3">
+  <div class="col-md-4">
+    <input type="text" name="q" value="{{ q }}" class="form-control" placeholder="Buscar por código o nombre...">
+  </div>
+  <div class="col-md-2"><button class="btn btn-outline-secondary w-100">Filtrar</button></div>
+</form>
+<div class="card">
+<table class="table table-hover mb-0 tabla-ordenable">
+  <thead><tr><th>Código</th><th>Nombre</th><th>Nivel</th><th>Categoría DOFA</th><th>Referencia externa</th></tr></thead>
+  <tbody>
+    {% for r in riesgos %}
+    <tr>
+      <td><a href="{% url 'riesgo_detalle' r.codigo %}">{{ r.codigo }}</a></td>
+      <td>{{ r.nombre }}</td>
+      <td>
+        <span class="badge
+          {% if r.nivel == 'Crítica' or r.nivel == 'Alta' %}bg-danger
+          {% elif r.nivel == 'Media' %}bg-warning text-dark
+          {% elif r.nivel == 'Baja' %}bg-info text-dark
+          {% else %}bg-secondary{% endif %}">{{ r.nivel|default:"—" }}</span>
+      </td>
+      <td>{{ r.categoria_dofa|default:"—" }}</td>
+      <td>{{ r.referencia_matriz_externa|default:"—" }}</td>
+    </tr>
+    {% empty %}
+    <tr><td colspan="5" class="text-center text-muted py-4">No hay riesgos registrados todavía.</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+</div>
+{% endblock %}

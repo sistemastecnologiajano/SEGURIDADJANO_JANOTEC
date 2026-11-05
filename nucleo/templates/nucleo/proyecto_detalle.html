@@ -1,0 +1,68 @@
+{% extends "nucleo/base.html" %}
+{% block titulo %}{{ proyecto.nombre }}{% endblock %}
+{% block contenido %}
+<a href="{% url 'proyecto_lista' %}" class="d-inline-block mb-2 text-decoration-none">&larr; Volver a Proyectos</a>
+<div class="d-flex justify-content-between align-items-start mb-3">
+  <div>
+    <h3>{{ proyecto.id }} — {{ proyecto.nombre }}</h3>
+    <span class="badge bg-secondary">{{ proyecto.estado|default:"—" }}</span>
+  </div>
+  <a href="{% url 'actividad_editar' proyecto.id %}" class="btn btn-outline-primary">Editar datos generales</a>
+</div>
+
+<div class="row g-3 mb-3">
+  <div class="col-md-3"><div class="card p-3 text-center"><div class="fs-4">{{ conteo_sub.finalizado }}</div><div class="text-muted small">Subactividades finalizadas</div></div></div>
+  <div class="col-md-3"><div class="card p-3 text-center"><div class="fs-4">{{ conteo_sub.en_proceso }}</div><div class="text-muted small">En proceso</div></div></div>
+  <div class="col-md-3"><div class="card p-3 text-center"><div class="fs-4">{{ activos|length }}</div><div class="text-muted small">Servicios asociados</div></div></div>
+  <div class="col-md-3"><div class="card p-3 text-center"><div class="fs-4">{{ proyecto.avance_pct }}%</div><div class="text-muted small">Avance general</div></div></div>
+</div>
+
+<div class="row g-3">
+  <div class="col-md-6">
+    <div class="card p-3">
+      <h6>Subactividades</h6>
+      <ul class="list-group">
+        {% for s in subactividades %}
+          <li class="list-group-item">
+            <a href="{% url 'subactividad_detalle' s.id_detalle %}">{{ s.nombre }}</a>
+            <span class="badge bg-secondary float-end">{{ s.avance_pct }}%</span>
+          </li>
+        {% empty %}<li class="list-group-item text-muted">Sin subactividades.</li>{% endfor %}
+      </ul>
+    </div>
+  </div>
+  <div class="col-md-6">
+    <div class="card p-3">
+      <h6>Servicios / activos asociados</h6>
+      <ul class="list-group">
+        {% for a in activos %}
+          <li class="list-group-item d-flex justify-content-between">
+            <a href="{% url 'activo_detalle' a.id_servicio %}">{{ a.servicio }}</a>
+            <span class="badge bg-secondary">{{ a.estado_validacion }}</span>
+          </li>
+        {% empty %}<li class="list-group-item text-muted">Sin servicios asociados.</li>{% endfor %}
+      </ul>
+    </div>
+  </div>
+</div>
+
+<div class="card p-3 mt-3">
+  <div class="d-flex justify-content-between align-items-center mb-2">
+    <h6 class="mb-0">Ficha del proyecto</h6>
+    <a href="{% url 'ficha_proyecto_editar' proyecto.id %}" class="btn btn-sm btn-outline-primary">Editar ficha</a>
+  </div>
+  {% if ficha %}
+    <dl class="row mb-0">
+      <dt class="col-sm-3">Objetivo general</dt><dd class="col-sm-9">{{ ficha.objetivo_general|linebreaksbr|default:"—" }}</dd>
+      <dt class="col-sm-3">Alcance</dt><dd class="col-sm-9">{{ ficha.alcance|linebreaksbr|default:"—" }}</dd>
+      <dt class="col-sm-3">Justificación</dt><dd class="col-sm-9">{{ ficha.justificacion|linebreaksbr|default:"—" }}</dd>
+      <dt class="col-sm-3">Beneficios esperados</dt><dd class="col-sm-9">{{ ficha.beneficios_esperados|linebreaksbr|default:"—" }}</dd>
+      <dt class="col-sm-3">Entregables</dt><dd class="col-sm-9">{{ ficha.entregables|linebreaksbr|default:"—" }}</dd>
+      <dt class="col-sm-3">Exclusiones</dt><dd class="col-sm-9">{{ ficha.exclusiones|linebreaksbr|default:"—" }}</dd>
+      <dt class="col-sm-3">Riesgos y mitigación</dt><dd class="col-sm-9">{{ ficha.riesgos_mitigacion|linebreaksbr|default:"—" }}</dd>
+    </dl>
+  {% else %}
+    <p class="text-muted mb-0">Este proyecto aún no tiene ficha informativa.</p>
+  {% endif %}
+</div>
+{% endblock %}

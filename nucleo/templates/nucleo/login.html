@@ -1,0 +1,35 @@
+{% extends "nucleo/base.html" %}
+{% load static %}
+{% block titulo %}Ingresar{% endblock %}
+{% block contenido %}
+<div class="row g-0 min-vh-100">
+  <div class="col-lg-5 login-panel">
+    <div class="jano-marca jano-marca--invertida">
+      <img src="{% static 'nucleo/img/icono_jano.png' %}" alt="Seguridad JANO" class="jano-marca__icono">
+      <span class="jano-marca__texto"><small>Seguridad</small><strong>JANO</strong></span>
+    </div>
+    <div class="lema">Protegemos con Propósito</div>
+  </div>
+  <div class="col-lg-7 d-flex align-items-center justify-content-center py-5">
+    <div style="max-width: 380px; width: 100%;">
+      <h4 class="mb-1">Iniciar sesión</h4>
+      <p class="text-muted mb-4">Plataforma de Gestión TIC — Seguridad JANO.</p>
+      {% if form.errors %}
+        <div class="alert alert-danger">Usuario o contraseña incorrectos.</div>
+      {% endif %}
+      <form method="post">
+        {% csrf_token %}
+        <div class="mb-3">
+          <label class="form-label">Usuario</label>
+          {{ form.username }}
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Contraseña</label>
+          {{ form.password }}
+        </div>
+        <button type="submit" class="btn btn-primary w-100">Iniciar sesión</button>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

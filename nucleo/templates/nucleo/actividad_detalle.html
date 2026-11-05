@@ -1,0 +1,63 @@
+{% extends "nucleo/base.html" %}
+{% block titulo %}{{ actividad.nombre }}{% endblock %}
+{% block contenido %}
+<a href="{% url 'actividad_lista' %}" class="d-inline-block mb-2 text-decoration-none">&larr; Volver a Actividades</a>
+<div class="d-flex justify-content-between align-items-start mb-3">
+  <div>
+    <h3>{{ actividad.id }} — {{ actividad.nombre }}
+      {% if actividad.es_proyecto %}<span class="badge bg-info">Proyecto</span>{% endif %}
+    </h3>
+    <span class="badge bg-secondary badge-estado">{{ actividad.estado|default:"—" }}</span>
+  </div>
+  <div>
+    <a href="{% url 'actividad_editar' actividad.id %}" class="btn btn-outline-primary">Editar</a>
+    {% if actividad.es_proyecto %}
+      <a href="{% url 'proyecto_detalle' actividad.id %}" class="btn btn-outline-info">Ver como proyecto</a>
+    {% endif %}
+  </div>
+</div>
+
+<div class="row g-3">
+  <div class="col-md-8">
+    <div class="card p-3 mb-3">
+      <dl class="row mb-0">
+        <dt class="col-sm-3">Línea de gestión</dt><dd class="col-sm-9">{{ actividad.linea_gestion|default:"—" }}</dd>
+        <dt class="col-sm-3">Descripción</dt><dd class="col-sm-9">{{ actividad.descripcion|linebreaksbr|default:"—" }}</dd>
+        <dt class="col-sm-3">Responsable</dt><dd class="col-sm-9">{{ actividad.responsable|default:"—" }}</dd>
+        <dt class="col-sm-3">Prioridad</dt><dd class="col-sm-9">{{ actividad.prioridad|default:"—" }}</dd>
+        <dt class="col-sm-3">Fecha inicio</dt><dd class="col-sm-9">{{ actividad.fecha_inicio|date:"d/m/Y"|default:"—" }}</dd>
+        <dt class="col-sm-3">Fecha compromiso</dt><dd class="col-sm-9">{{ actividad.fecha_compromiso|date:"d/m/Y"|default:"—" }}</dd>
+        <dt class="col-sm-3">Fecha final</dt><dd class="col-sm-9">{{ actividad.fecha_final|date:"d/m/Y"|default:"—" }}</dd>
+        <dt class="col-sm-3">% Avance</dt><dd class="col-sm-9">{{ actividad.avance_pct }}%</dd>
+        <dt class="col-sm-3">Riesgos asociados</dt>
+        <dd class="col-sm-9">
+          {% for c in actividad.codigos_riesgo %}<span class="badge bg-warning text-dark me-1">{{ c }}</span>{% empty %}—{% endfor %}
+        </dd>
+        <dt class="col-sm-3">Revisión</dt>
+        <dd class="col-sm-9">{{ actividad.estado_revision|default:"—" }} — {{ actividad.revisado_por|default:"" }} ({{ actividad.fecha_revision|date:"d/m/Y"|default:"sin fecha" }})</dd>
+        <dt class="col-sm-3">Evidencia</dt>
+        <dd class="col-sm-9">{% if actividad.evidencia %}<a href="{{ actividad.evidencia.url }}" target="_blank" rel="noopener">Ver evidencia</a>{% else %}—{% endif %}</dd>
+        <dt class="col-sm-3">Observaciones</dt><dd class="col-sm-9">{{ actividad.observaciones|linebreaksbr|default:"—" }}</dd>
+      </dl>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card p-3">
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <h6 class="mb-0">Subactividades</h6>
+        <a href="{% url 'subactividad_nueva' %}?actividad={{ actividad.id }}" class="btn btn-sm btn-primary">+ Nueva</a>
+      </div>
+      <ul class="list-group">
+        {% for s in subactividades %}
+          <li class="list-group-item">
+            <a href="{% url 'subactividad_detalle' s.id_detalle %}">{{ s.nombre }}</a>
+            <span class="badge bg-secondary float-end">{{ s.avance_pct }}%</span>
+          </li>
+        {% empty %}
+          <li class="list-group-item text-muted">Sin subactividades.</li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+</div>
+{% endblock %}

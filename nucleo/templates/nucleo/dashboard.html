@@ -1,0 +1,117 @@
+{% extends "nucleo/base.html" %}
+{% block titulo %}Dashboard{% endblock %}
+{% block contenido %}
+<h3 class="mb-4">Dashboard de Gestión TIC</h3>
+
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-2">
+    <a href="{% url 'actividad_lista' %}" class="card p-3 text-center tarjeta-indicador">
+      <div class="fs-3">{{ total_actividades }}</div><div class="text-muted small">Actividades</div>
+    </a>
+  </div>
+  <div class="col-6 col-md-2">
+    <a href="{% url 'subactividad_lista' %}" class="card p-3 text-center tarjeta-indicador">
+      <div class="fs-3">{{ total_subactividades }}</div><div class="text-muted small">Subactividades</div>
+    </a>
+  </div>
+  <div class="col-6 col-md-2">
+    <a href="{% url 'activo_lista' %}" class="card p-3 text-center tarjeta-indicador">
+      <div class="fs-3">{{ total_activos }}</div><div class="text-muted small">Activos críticos</div>
+    </a>
+  </div>
+  <div class="col-6 col-md-2">
+    <a href="{% url 'validacion_lista' %}" class="card p-3 text-center tarjeta-indicador">
+      <div class="fs-3">{{ total_validaciones }}</div><div class="text-muted small">Validaciones</div>
+    </a>
+  </div>
+  <div class="col-6 col-md-2">
+    <a href="{% url 'proyecto_lista' %}" class="card p-3 text-center tarjeta-indicador">
+      <div class="fs-3">{{ total_proyectos }}</div><div class="text-muted small">PROYECTOS</div>
+    </a>
+  </div>
+  <div class="col-6 col-md-2">
+    <a href="{% url 'riesgo_lista' %}" class="card p-3 text-center tarjeta-indicador">
+      <div class="fs-3">{{ total_riesgos }}</div><div class="text-muted small">Riesgos</div>
+    </a>
+  </div>
+</div>
+
+<div class="row g-3 mb-4">
+  <div class="col-md-12">
+    <a href="{% url 'seguimiento' %}" class="card p-3 d-flex flex-row justify-content-between align-items-center tarjeta-indicador">
+      <div>
+        <h5 class="mb-0">Seguimiento pendiente</h5>
+        <div class="text-muted small">Actividades y validaciones que el jefe aún no ha revisado.</div>
+      </div>
+      <div class="fs-3 {% if pendientes_seguimiento %}text-danger{% endif %}">{{ pendientes_seguimiento }}</div>
+    </a>
+  </div>
+</div>
+
+<div class="row g-3">
+  <div class="col-md-6">
+    <div class="card p-3 h-100">
+      <h5>Activos que requieren atención</h5>
+      {% if activos_en_alerta %}
+        <ul class="list-group">
+          {% for a in activos_en_alerta %}
+            <li class="list-group-item d-flex justify-content-between align-items-center alerta-critica">
+              <a href="{% url 'activo_detalle' a.id_servicio %}">{{ a.servicio }}</a>
+              <span class="badge bg-danger badge-estado">{{ a.estado_validacion }}</span>
+            </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p class="text-muted">No hay servicios con falla o validación pendiente.</p>
+      {% endif %}
+    </div>
+  </div>
+  <div class="col-md-6">
+    <div class="card p-3 h-100">
+      <h5>Subactividades por vencer (próximos 7 días)</h5>
+      {% if subactividades_por_vencer %}
+        <ul class="list-group">
+          {% for s in subactividades_por_vencer %}
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+              <a href="{% url 'subactividad_detalle' s.id_detalle %}">{{ s.nombre }}</a>
+              <span class="text-muted small">{{ s.fecha_compromiso|date:"d/m/Y" }}</span>
+            </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p class="text-muted">No hay subactividades por vencer en los próximos 7 días.</p>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="col-md-6">
+    <div class="card p-3 h-100">
+      <h5>Actividades por estado</h5>
+      <ul class="list-group">
+        {% for estado, total in conteo_actividades_por_estado.items %}
+          <li class="list-group-item d-flex justify-content-between">
+            <span>{{ estado }}</span><span class="fw-bold">{{ total }}</span>
+          </li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+  <div class="col-md-6">
+    <div class="card p-3 h-100">
+      <h5>Próximas validaciones (7 días)</h5>
+      {% if proximas_validaciones %}
+        <ul class="list-group">
+          {% for a in proximas_validaciones %}
+            <li class="list-group-item d-flex justify-content-between">
+              <a href="{% url 'activo_detalle' a.id_servicio %}">{{ a.servicio }}</a>
+              <span class="text-muted small">{{ a.proxima_validacion|date:"d/m/Y" }}</span>
+            </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p class="text-muted">No hay validaciones programadas en los próximos 7 días.</p>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

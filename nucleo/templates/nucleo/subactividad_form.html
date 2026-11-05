@@ -1,0 +1,44 @@
+{% extends "nucleo/base.html" %}
+{% block titulo %}{% if sub %}Editar subactividad{% else %}Nueva subactividad{% endif %}{% endblock %}
+{% block contenido %}
+<h3 class="mb-3">{% if sub %}Editar subactividad {{ sub.id_detalle }}{% else %}Nueva subactividad{% endif %}</h3>
+<form method="post" enctype="multipart/form-data">
+  {% csrf_token %}
+  <div class="card p-3 mb-3">
+    <div class="row g-3">
+      <div class="col-md-12">
+        <label class="form-label">Actividad padre</label>{{ form.actividad }}
+      </div>
+      <div class="col-md-12">
+        <label class="form-label">Subactividad</label>{{ form.nombre }}
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">Responsable</label>{{ form.responsable }}
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">Estado</label>{{ form.estado }}
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Fecha inicio</label>{{ form.fecha_inicio }}
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Fecha compromiso</label>{{ form.fecha_compromiso }}
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Fecha fin</label>{{ form.fecha_fin }}
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">Cumplimiento</label>{{ form.cumplimiento }}
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">Evidencia</label>{{ form.evidencia }}
+      </div>
+      <div class="col-12">
+        <label class="form-label">Observación</label>{{ form.observacion }}
+      </div>
+    </div>
+  </div>
+  <button type="submit" class="btn btn-primary">Guardar</button>
+  <a href="{% if sub %}{% url 'subactividad_detalle' sub.id_detalle %}{% else %}{% url 'subactividad_lista' %}{% endif %}" class="btn btn-outline-secondary">Cancelar</a>
+</form>
+{% endblock %}

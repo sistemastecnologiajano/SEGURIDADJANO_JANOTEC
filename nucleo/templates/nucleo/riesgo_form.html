@@ -1,0 +1,33 @@
+{% extends "nucleo/base.html" %}
+{% block titulo %}{% if riesgo %}Editar riesgo{% else %}Nuevo riesgo{% endif %}{% endblock %}
+{% block contenido %}
+<h3 class="mb-3">{% if riesgo %}Editar riesgo {{ riesgo.codigo }}{% else %}Nuevo riesgo{% endif %}</h3>
+<form method="post">
+  {% csrf_token %}
+  <div class="card p-3 mb-3">
+    <div class="row g-3">
+      <div class="col-md-3">
+        <label class="form-label">Código</label>{{ form.codigo }}
+        <div class="form-text">Ej. R-01 — el mismo código que ya usabas en la matriz/DOFA.</div>
+      </div>
+      <div class="col-md-9">
+        <label class="form-label">Nombre</label>{{ form.nombre }}
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Nivel</label>{{ form.nivel }}
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Categoría DOFA</label>{{ form.categoria_dofa }}
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Referencia en matriz externa</label>{{ form.referencia_matriz_externa }}
+      </div>
+      <div class="col-12">
+        <label class="form-label">Descripción</label>{{ form.descripcion }}
+      </div>
+    </div>
+  </div>
+  <button type="submit" class="btn btn-primary">Guardar</button>
+  <a href="{% if riesgo %}{% url 'riesgo_detalle' riesgo.codigo %}{% else %}{% url 'riesgo_lista' %}{% endif %}" class="btn btn-outline-secondary">Cancelar</a>
+</form>
+{% endblock %}

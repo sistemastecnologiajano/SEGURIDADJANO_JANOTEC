@@ -1,0 +1,42 @@
+{% extends "nucleo/base.html" %}
+{% block titulo %}Registrar periodo — {{ indicador.nombre }}{% endblock %}
+{% block contenido %}
+<h3 class="mb-1">{{ indicador.nombre }}</h3>
+<div class="text-muted mb-3">{% if registro.pk %}Editando el registro de {{ registro.etiqueta_periodo }}{% else %}Nuevo registro de periodo{% endif %}</div>
+<form method="post">
+  {% csrf_token %}
+  <div class="card p-3 mb-3">
+    <div class="row g-3">
+      <div class="col-md-4">
+        <label class="form-label">Año</label>{{ form.anio }}
+      </div>
+      <div class="col-md-8">
+        <label class="form-label">Periodo</label>{{ form.periodo }}
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">Meta esperada</label>{{ form.meta_manual }}
+        {% if form.meta_manual.help_text %}<div class="form-text">{{ form.meta_manual.help_text }}</div>
+        {% else %}<div class="form-text">Lo que se esperaba lograr en este periodo (ej. 9 validaciones).</div>{% endif %}
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">Valor logrado</label>{{ form.valor_manual }}
+        {% if form.valor_manual.help_text %}<div class="form-text">{{ form.valor_manual.help_text }}</div>{% endif %}
+      </div>
+      <div class="col-12">
+        <label class="form-label">Análisis del indicador</label>{{ form.analisis }}
+      </div>
+      <div class="col-md-5">
+        <label class="form-label">Acción correctiva</label>{{ form.accion_correctiva }}
+      </div>
+      <div class="col-md-3">
+        <label class="form-label">Fecha compromiso</label>{{ form.fecha_accion }}
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Estado de la acción</label>{{ form.estado_accion }}
+      </div>
+    </div>
+  </div>
+  <button type="submit" class="btn btn-primary">Guardar</button>
+  <a href="{% url 'indicador_detalle' indicador.pk %}" class="btn btn-outline-secondary">Cancelar</a>
+</form>
+{% endblock %}

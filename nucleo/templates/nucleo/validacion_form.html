@@ -1,0 +1,61 @@
+{% extends "nucleo/base.html" %}
+{% block titulo %}{% if validacion %}Editar validación{% else %}Nueva validación{% endif %}{% endblock %}
+{% block contenido %}
+<h3 class="mb-3">{% if validacion %}Editar validación {{ validacion.id_validacion }}{% else %}Nueva validación{% endif %}</h3>
+<form method="post" enctype="multipart/form-data">
+  {% csrf_token %}
+  <div class="card p-3 mb-3">
+    <div class="row g-3">
+      <div class="col-md-6">
+        <label class="form-label">Servicio / activo</label>{{ form.activo }}
+      </div>
+      <div class="col-md-3">
+        <label class="form-label">Fecha de validación</label>{{ form.fecha_validacion }}
+      </div>
+      <div class="col-md-3">
+        <label class="form-label">Tipo de validación</label>{{ form.tipo_validacion }}
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Resultado</label>{{ form.resultado }}
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Responsable</label>{{ form.responsable }}
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Seguimiento a proveedor</label>{{ form.seguimiento_proveedor }}
+      </div>
+      <div class="col-12">
+        <label class="form-label">Evidencia</label>{{ form.evidencia }}
+      </div>
+      <div class="col-12">
+        <label class="form-label">Observación de la validación</label>{{ form.observacion_validacion }}
+      </div>
+    </div>
+  </div>
+  <div class="card p-3 mb-3">
+    <h6>Revisión</h6>
+    <div class="row g-3">
+      <div class="col-md-3">
+        <label class="form-label">Revisado por</label>{{ form.revisado_por }}
+      </div>
+      <div class="col-md-3">
+        <label class="form-label">Fecha de revisión</label>{{ form.fecha_revision }}
+      </div>
+      <div class="col-md-3">
+        <label class="form-label">Estado de revisión</label>{{ form.estado_revision }}
+      </div>
+      <div class="col-md-3">
+        <label class="form-label">Código SEIF</label>{{ form.codigo_seif }}
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">Link SEIF</label>{{ form.link_seif }}
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">Observación de revisión</label>{{ form.observacion_revision }}
+      </div>
+    </div>
+  </div>
+  <button type="submit" class="btn btn-primary">Guardar</button>
+  <a href="{% if validacion %}{% url 'activo_detalle' validacion.activo_id %}{% else %}{% url 'activo_lista' %}{% endif %}" class="btn btn-outline-secondary">Cancelar</a>
+</form>
+{% endblock %}

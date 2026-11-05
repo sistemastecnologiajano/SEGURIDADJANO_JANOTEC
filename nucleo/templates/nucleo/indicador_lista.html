@@ -1,0 +1,55 @@
+{% extends "nucleo/base.html" %}
+{% block titulo %}Indicadores{% endblock %}
+{% block contenido %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h3>Indicadores</h3>
+  {% if puede_gestionar_activos %}
+  <a href="{% url 'indicador_nuevo' %}" class="btn btn-primary">+ Nuevo indicador</a>
+  {% endif %}
+</div>
+<p class="text-muted">
+  Catálogo configurable de indicadores de gestión (equivalente a los indicadores que antes se llevaban en
+  Looker Studio). Cada tarjeta muestra el periodo actual; entra al indicador para ver su historial completo
+  y registrar el análisis de cada periodo.
+</p>
+
+<div class="row g-3">
+  {% for t in tarjetas %}
+  {% with registro=t.registro_actual indicador=t.indicador %}
+  <div class="col-md-4">
+    <a href="{% url 'indicador_detalle' indicador.pk %}" class="text-decoration-none text-reset">
+      <div class="card p-3 h-100">
+        <div class="d-flex justify-content-between align-items-start">
+          <h5 class="mb-1">{{ indicador.nombre }}</h5>
+          {% if indicador.tipo != 'MANUAL' %}<span class="badge bg-info text-dark">Automático</span>{% endif %}
+        </div>
+        <div class="text-muted small mb-2">{{ indicador.get_periodicidad_display }}</div>
+        {% if registro and registro.cumplimiento_pct is not None %}
+          <div class="display-6 mb-0
+            {% if registro.cumplimiento_pct >= 80 %}text-success
+            {% elif registro.cumplimiento_pct >= 50 %}text-warning
+            {% else %}text-danger{% endif %}">
+            {{ registro.cumplimiento_pct }}{{ indicador.unidad }}
+          </div>
+          <div class="small text-muted">
+            Logrado {{ registro.valor|default:"—" }} / meta {{ registro.meta|default:"—" }} ·
+            {{ registro.etiqueta_periodo }}
+            {% if not t.es_periodo_actual %}<span class="badge bg-secondary">no es el periodo actual</span>{% endif %}
+          </div>
+        {% else %}
+          <div class="text-muted small py-2">Sin ningún registro todavía.</div>
+        {% endif %}
+      </div>
+    </a>
+  </div>
+  {% endwith %}
+  {% empty %}
+  <div class="col-12">
+    <div class="card p-4 text-center text-muted">
+      No hay indicadores activos todavía.
+      {% if puede_gestionar_activos %}<a href="{% url 'indicador_nuevo' %}">Crea el primero</a>.{% endif %}
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}

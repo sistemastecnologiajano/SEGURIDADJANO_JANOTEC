@@ -1,0 +1,29 @@
+<!doctype html>
+<html>
+<body style="font-family: Arial, sans-serif; color:#222;">
+  <h2 style="color:#2E3092;">Tus actividades pendientes por finalizar</h2>
+  <p>Este reporte muestra tus actividades que todavía no se han marcado como finalizadas y cuya
+     fecha de compromiso ya pasó, o está a menos de una semana.</p>
+  <table border="1" cellpadding="6" cellspacing="0" style="border-collapse:collapse; width:100%;">
+    <thead style="background:#2E3092; color:#fff;">
+      <tr>
+        <th align="left">ID</th>
+        <th align="left">Actividad</th>
+        <th align="left">Fecha de compromiso</th>
+        <th align="left">Estado</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for a in actividades %}
+      <tr style="background:{% if a.fecha_compromiso < hoy %}#f8d7da{% else %}#fff3cd{% endif %};">
+        <td>{{ a.id }}</td>
+        <td>{{ a.nombre }}</td>
+        <td>{{ a.fecha_compromiso|date:"d/m/Y" }}</td>
+        <td>{% if a.fecha_compromiso < hoy %}Vencida{% else %}Por vencer{% endif %}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <p style="margin-top:16px; font-size:12px; color:#777;">Plataforma de Gestión TIC — gestiontic.seguridadjano.com</p>
+</body>
+</html>

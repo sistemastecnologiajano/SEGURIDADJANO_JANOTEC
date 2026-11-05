@@ -1,0 +1,21 @@
+{% extends "nucleo/base.html" %}
+{% block titulo %}Ficha de proyecto{% endblock %}
+{% block contenido %}
+<h3 class="mb-3">Ficha del proyecto — {{ proyecto.nombre }}</h3>
+<form method="post">
+  {% csrf_token %}
+  <div class="card p-3 mb-3">
+    <div class="row g-3">
+      <div class="col-12"><label class="form-label">Objetivo general</label>{{ form.objetivo_general }}</div>
+      <div class="col-12"><label class="form-label">Alcance</label>{{ form.alcance }}</div>
+      <div class="col-12"><label class="form-label">Justificación</label>{{ form.justificacion }}</div>
+      <div class="col-12"><label class="form-label">Beneficios esperados</label>{{ form.beneficios_esperados }}</div>
+      <div class="col-12"><label class="form-label">Entregables</label>{{ form.entregables }}</div>
+      <div class="col-12"><label class="form-label">Exclusiones</label>{{ form.exclusiones }}</div>
+      <div class="col-12"><label class="form-label">Riesgos y mitigación</label>{{ form.riesgos_mitigacion }}</div>
+    </div>
+  </div>
+  <button type="submit" class="btn btn-primary">Guardar ficha</button>
+  <a href="{% url 'proyecto_detalle' proyecto.id %}" class="btn btn-outline-secondary">Cancelar</a>
+</form>
+{% endblock %}

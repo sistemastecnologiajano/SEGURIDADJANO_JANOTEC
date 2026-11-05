@@ -1,0 +1,51 @@
+{% extends "nucleo/base.html" %}
+{% block titulo %}Validaciones{% endblock %}
+{% block contenido %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h3>Validaciones</h3>
+  <a href="{% url 'validacion_nueva' %}" class="btn btn-primary">+ Nueva validación</a>
+</div>
+<p class="text-muted">Hoja general de seguimiento: todas las validaciones registradas, de todos los activos/servicios, en un solo lugar.</p>
+
+<form method="get" class="row g-2 mb-3">
+  <div class="col-md-4">
+    <input type="text" name="q" value="{{ q }}" class="form-control" placeholder="Buscar por servicio, ID o responsable...">
+  </div>
+  <div class="col-md-3">
+    <select name="resultado" class="form-select">
+      <option value="">Todos los resultados</option>
+      {% for r in resultados_disponibles %}
+        <option value="{{ r }}" {% if r == resultado %}selected{% endif %}>{{ r }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="col-md-2"><button class="btn btn-outline-secondary w-100">Filtrar</button></div>
+</form>
+
+<input type="text" class="form-control mb-2" placeholder="Filtro rápido en esta página..." data-filtro-tabla="#tablaValidaciones">
+<div class="card">
+<table class="table table-hover mb-0 tabla-ordenable" id="tablaValidaciones">
+  <thead>
+    <tr>
+      <th>ID</th><th>Servicio</th><th>Fecha</th><th>Tipo</th><th>Resultado</th>
+      <th>Responsable</th><th>Evidencia</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for v in validaciones %}
+    <tr>
+      <td><a href="{% url 'validacion_editar' v.id_validacion %}">{{ v.id_validacion }}</a></td>
+      <td><a href="{% url 'activo_detalle' v.activo_id %}">{{ v.activo.servicio }}</a></td>
+      <td data-orden="{{ v.fecha_validacion|date:'Y-m-d' }}">{{ v.fecha_validacion|date:"d/m/Y" }}</td>
+      <td>{{ v.tipo_validacion|default:"—" }}</td>
+      <td><span class="badge {% if v.resultado == 'Fallo' %}bg-danger{% elif v.resultado == 'Intermitente' %}bg-warning text-dark{% else %}bg-success{% endif %}">{{ v.resultado|default:"—" }}</span></td>
+      <td>{{ v.responsable|default:"—" }}</td>
+      <td>{% if v.evidencia %}<a href="{{ v.evidencia.url }}" target="_blank" rel="noopener">Ver</a>{% else %}—{% endif %}</td>
+    </tr>
+    {% empty %}
+    <tr><td colspan="7" class="text-center text-muted py-4">No hay validaciones registradas.</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+</div>
+{% endblock %}

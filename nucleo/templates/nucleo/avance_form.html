@@ -1,0 +1,31 @@
+{% extends "nucleo/base.html" %}
+{% block titulo %}Registrar avance{% endblock %}
+{% block contenido %}
+<h3 class="mb-3">Registrar avance — {{ sub.nombre }}</h3>
+<form method="post" enctype="multipart/form-data">
+  {% csrf_token %}
+  <div class="card p-3 mb-3">
+    <div class="row g-3">
+      <div class="col-md-4">
+        <label class="form-label">Fecha de avance</label>{{ form.fecha_avance }}
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">% Avance acumulado (0-99)</label>{{ form.avance_acumulado }}
+        {% if form.avance_acumulado.errors %}<div class="text-danger small">{{ form.avance_acumulado.errors.0 }}</div>{% endif %}
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Responsable</label>{{ form.responsable }}
+      </div>
+      <div class="col-12">
+        <label class="form-label">Nota</label>{{ form.nota }}
+      </div>
+      <div class="col-12">
+        <label class="form-label">Evidencia</label>{{ form.evidencia }}
+      </div>
+    </div>
+  </div>
+  <div class="form-text mb-3">Para llegar al 100%, pon la fecha fin en la subactividad en lugar de registrar un avance de 100.</div>
+  <button type="submit" class="btn btn-primary">Guardar avance</button>
+  <a href="{% url 'subactividad_detalle' sub.id_detalle %}" class="btn btn-outline-secondary">Cancelar</a>
+</form>
+{% endblock %}

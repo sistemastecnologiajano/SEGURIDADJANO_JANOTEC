@@ -1,0 +1,28 @@
+<!doctype html>
+<html>
+<body style="font-family: Arial, sans-serif; color:#222;">
+  <h2 style="color:#0d2b4e;">Servicios TI que requieren atención</h2>
+  <p>El siguiente reporte muestra los servicios/activos críticos con validación pendiente, vencida o con falla, generado automáticamente por la Plataforma de Gestión TIC.</p>
+  <table border="1" cellpadding="6" cellspacing="0" style="border-collapse:collapse; width:100%;">
+    <thead style="background:#0d2b4e; color:#fff;">
+      <tr>
+        <th align="left">Servicio</th>
+        <th align="left">Responsable</th>
+        <th align="left">Próxima validación</th>
+        <th align="left">Estado</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for a in activos %}
+      <tr style="background:{% if a.estado_validacion == 'Servicio con falla' %}#fde2e2{% else %}#fff{% endif %};">
+        <td>{{ a.servicio }} ({{ a.id_servicio }})</td>
+        <td>{{ a.responsable|default:"—" }}</td>
+        <td>{{ a.proxima_validacion|date:"d/m/Y"|default:"—" }}</td>
+        <td><strong>{{ a.estado_validacion }}</strong></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <p style="margin-top:16px; font-size:12px; color:#777;">Plataforma de Gestión TIC — gestiontic.seguridadjano.com</p>
+</body>
+</html>

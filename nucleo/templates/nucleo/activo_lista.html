@@ -1,0 +1,52 @@
+{% extends "nucleo/base.html" %}
+{% block titulo %}Activos críticos{% endblock %}
+{% block contenido %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h3>Activos / servicios críticos</h3>
+  {% if puede_gestionar_activos %}
+  <a href="{% url 'activo_nuevo' %}" class="btn btn-primary">+ Nuevo activo</a>
+  {% endif %}
+</div>
+<form method="get" class="row g-2 mb-3">
+  <div class="col-md-4">
+    <input type="text" name="q" value="{{ q }}" class="form-control" placeholder="Buscar por servicio o ID...">
+  </div>
+  <div class="col-md-2"><button class="btn btn-outline-secondary w-100">Filtrar</button></div>
+</form>
+<p class="text-muted small mb-2">
+  Orden: primero los que requieren atención (sin revisar / con falla / vencidos), luego por criticidad.
+  <span class="badge" style="background:#f8d7da;color:#842029;">Crítica/Alta</span>
+  <span class="badge" style="background:#ffe0b2;color:#7a4a00;">Media</span>
+  <span class="badge" style="background:#fff3cd;color:#664d03;">Baja</span>
+</p>
+<input type="text" class="form-control mb-2" placeholder="Filtro rápido en esta página..." data-filtro-tabla="#tablaActivos">
+<div class="card">
+<table class="table table-hover mb-0 tabla-ordenable" id="tablaActivos">
+  <thead><tr><th>ID</th><th>Servicio</th><th>Criticidad</th><th>Responsable</th><th>Próxima validación</th><th>Estado</th><th data-no-ordenar></th></tr></thead>
+  <tbody>
+    {% for a in activos %}
+    <tr class="{{ a.clase_criticidad }}">
+      <td><a href="{% url 'activo_detalle' a.id_servicio %}">{{ a.id_servicio }}</a></td>
+      <td>{{ a.servicio }}</td>
+      <td>{{ a.criticidad|default:"—" }}</td>
+      <td>{{ a.responsable|default:"—" }}</td>
+      <td data-orden="{{ a.proxima_validacion|date:'Y-m-d' }}">{{ a.proxima_validacion|date:"d/m/Y"|default:"—" }}</td>
+      <td>
+        <span class="badge
+          {% if a.estado_validacion == 'Al día' %}bg-success
+          {% elif a.estado_validacion == 'Servicio con falla' %}bg-danger
+          {% elif a.estado_validacion == 'Revisar hoy' %}bg-warning text-dark
+          {% elif a.estado_validacion == 'Pendiente revisión' %}bg-orange text-dark
+          {% else %}bg-secondary{% endif %}">{{ a.estado_validacion }}</span>
+      </td>
+      <td data-no-ordenar>
+        <a href="{% url 'validacion_nueva' %}?activo={{ a.id_servicio }}" class="btn btn-sm btn-success">Revisar</a>
+      </td>
+    </tr>
+    {% empty %}
+    <tr><td colspan="7" class="text-center text-muted py-4">No hay activos registrados.</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+</div>
+{% endblock %}
