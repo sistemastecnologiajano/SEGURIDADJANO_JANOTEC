@@ -15,4 +15,18 @@
   <button type="submit" class="btn btn-primary">Guardar</button>
   <a href="{% url 'calendario_lista' %}" class="btn btn-outline-secondary">Cancelar</a>
 </form>
+
+{% if tarea %}
+<div class="mt-3">
+  <a href="{% url 'subactividad_nueva' %}?nombre={{ tarea.titulo|urlencode }}&fecha_compromiso={{ tarea.fecha|date:'Y-m-d' }}&responsable={{ tarea.responsable|urlencode }}&desde_tarea={{ tarea.id }}"
+     class="btn btn-outline-primary btn-sm">
+    ↗ Convertir a subactividad
+  </a>
+  <span class="text-muted small d-block mt-1">
+    Te lleva al formulario de "Nueva subactividad" con el título, la fecha y el responsable ya
+    copiados — ahí eliges a qué Actividad/Proyecto pertenece. Al guardarla, esta tarea del
+    calendario se marca como "Hecha" automáticamente.
+  </span>
+</div>
+{% endif %}
 {% endblock %}

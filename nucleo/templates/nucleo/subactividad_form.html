@@ -4,6 +4,13 @@
 <h3 class="mb-3">{% if sub %}Editar subactividad {{ sub.id_detalle }}{% else %}Nueva subactividad{% endif %}</h3>
 <form method="post" enctype="multipart/form-data">
   {% csrf_token %}
+  {% if desde_tarea %}<input type="hidden" name="desde_tarea" value="{{ desde_tarea }}">{% endif %}
+  {% if desde_tarea %}
+  <p class="text-muted small">
+    Esta subactividad viene de una tarea del calendario — al guardarla, esa tarea se marcará
+    como "Hecha" automáticamente.
+  </p>
+  {% endif %}
   <div class="card p-3 mb-3">
     <div class="row g-3">
       <div class="col-md-12">

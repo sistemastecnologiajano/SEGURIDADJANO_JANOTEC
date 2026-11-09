@@ -7,7 +7,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.views import LoginView, LogoutView
 from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect, render
-from django.urls import reverse_lazy
+from django.urls import reverse, reverse_lazy
 from django.utils import timezone
 from django.views.generic import TemplateView
 
@@ -201,8 +201,18 @@ def guardar_subactividad(request, pk=None):
             "Esta subactividad la creó otra persona, así que solo ella (o el Jefe) puede editarla.",
         )
         return redirect("subactividad_detalle", pk=sub.id_detalle)
-    actividad_id = request.GET.get("actividad")
-    inicial = {"actividad": actividad_id} if actividad_id and not sub else None
+    origen = request.GET if request.method != "POST" else request.POST
+    desde_tarea = origen.get("desde_tarea", "")
+    if not sub:
+        inicial = {
+            "actividad": request.GET.get("actividad") or None,
+            "nombre": request.GET.get("nombre") or None,
+            "fecha_compromiso": request.GET.get("fecha_compromiso") or None,
+            "responsable": request.GET.get("responsable") or None,
+        }
+        inicial = {k: v for k, v in inicial.items() if v} or None
+    else:
+        inicial = None
     form = SubactividadForm(request.POST or None, request.FILES or None, instance=sub, initial=inicial)
     if request.method == "POST" and form.is_valid():
         es_nueva = sub is None
@@ -213,9 +223,23 @@ def guardar_subactividad(request, pk=None):
         registrar_auditoria(
             request.user, "CREAR" if es_nueva else "EDITAR", "Subactividades", sub.id_detalle, sub.nombre,
         )
+        # Viene de "Convertir a subactividad" en el Calendario: la tarea
+        # original se marca como Hecha, con una nota de a cuál subactividad
+        # quedó convertida (no se borra, para no perder el historial).
+        if es_nueva and desde_tarea:
+            tarea = TareaCalendario.objects.filter(pk=desde_tarea).first()
+            if tarea:
+                tarea.estado = TareaCalendario.Estado.HECHA
+                tarea.completado_por = getattr(request.user, "email", "") or str(request.user)
+                tarea.fecha_completado = timezone.now()
+                nota = f"Convertida a subactividad {sub.id_detalle}."
+                tarea.observacion = f"{tarea.observacion}\n{nota}".strip() if tarea.observacion else nota
+                tarea.save()
         messages.success(request, f"Subactividad {sub.id_detalle} guardada correctamente.")
         return redirect("subactividad_detalle", pk=sub.id_detalle)
-    return render(request, "nucleo/subactividad_form.html", {"form": form, "sub": sub})
+    return render(request, "nucleo/subactividad_form.html", {
+        "form": form, "sub": sub, "desde_tarea": desde_tarea,
+    })
 
 
 @login_required
@@ -750,7 +774,49 @@ def lista_calendario(request):
     tareas_rango = TareaCalendario.objects.filter(fecha__gte=primer_dia, fecha__lte=ultimo_dia)
     tareas_por_fecha = {}
     for t in tareas_rango:
-        tareas_por_fecha.setdefault(t.fecha, []).append(t)
+        tareas_por_fecha.setdefault(t.fecha, []).append({
+            "id": t.id, "titulo": t.titulo, "fecha": t.fecha, "responsable": t.responsable,
+            "estado": t.estado, "vencida": t.vencida, "url": reverse("calendario_editar", args=[t.id]),
+            "tipo": "tarea", "color_fondo": None,
+        })
+
+    # Eventos automáticos — no se guardan aparte, se leen en vivo de lo que ya
+    # existe (igual que la alerta diaria por correo), para no duplicar datos
+    # ni tener que mantenerlos sincronizados a mano:
+    #  - Próxima validación de cada Activo Crítico.
+    #  - Actividades y Subactividades con fecha de compromiso, que todavía no
+    #    estén en estado "Finalizado".
+    for a in ActivoCritico.objects.exclude(frecuencia_validacion=""):
+        f = a.proxima_validacion
+        if f and primer_dia <= f <= ultimo_dia:
+            tareas_por_fecha.setdefault(f, []).append({
+                "titulo": f"Revisar: {a.servicio}", "fecha": f, "responsable": a.responsable,
+                "estado": a.estado_validacion, "vencida": f < hoy,
+                "url": reverse("activo_detalle", args=[a.id_servicio]),
+                "tipo": "validacion", "color_fondo": "#e3f2fd",
+            })
+
+    actividades_pend = Actividad.objects.filter(
+        fecha_compromiso__gte=primer_dia, fecha_compromiso__lte=ultimo_dia,
+    ).exclude(estado="Finalizado")
+    for act in actividades_pend:
+        tareas_por_fecha.setdefault(act.fecha_compromiso, []).append({
+            "titulo": f"Actividad: {act.nombre}", "fecha": act.fecha_compromiso, "responsable": act.responsable,
+            "estado": act.estado or "Sin estado", "vencida": act.fecha_compromiso < hoy,
+            "url": reverse("actividad_detalle", args=[act.id]),
+            "tipo": "actividad", "color_fondo": "#fff3cd",
+        })
+
+    subactividades_pend = Subactividad.objects.filter(
+        fecha_compromiso__gte=primer_dia, fecha_compromiso__lte=ultimo_dia,
+    ).exclude(estado="Finalizado").select_related("actividad")
+    for sub in subactividades_pend:
+        tareas_por_fecha.setdefault(sub.fecha_compromiso, []).append({
+            "titulo": f"Subactividad: {sub.nombre}", "fecha": sub.fecha_compromiso, "responsable": sub.responsable,
+            "estado": sub.estado or "Sin estado", "vencida": sub.fecha_compromiso < hoy,
+            "url": reverse("subactividad_detalle", args=[sub.id_detalle]),
+            "tipo": "subactividad", "color_fondo": "#fde2e2",
+        })
 
     semanas = [
         [

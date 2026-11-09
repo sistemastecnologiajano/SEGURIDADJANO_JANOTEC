@@ -11,6 +11,14 @@
   <a href="{% url 'calendario_nueva' %}" class="btn btn-primary">+ Nueva tarea</a>
 </div>
 
+<p class="text-muted small mb-2">
+  <span class="badge" style="background:#dfe3fb;color:#2E3092;">Tarea manual</span>
+  <span class="badge" style="background:#e3f2fd;color:#0d47a1;">Validación de activo crítico</span>
+  <span class="badge" style="background:#fff3cd;color:#664d03;">Actividad sin finalizar</span>
+  <span class="badge" style="background:#fde2e2;color:#842029;">Subactividad sin finalizar</span>
+  — estas 3 últimas aparecen solas, no hay que registrarlas a mano.
+</p>
+
 <div class="card p-2">
   <table class="table table-bordered mb-0" style="table-layout: fixed;">
     <thead>
@@ -28,12 +36,12 @@
             <span class="small {% if dia.es_hoy %}fw-bold text-primary{% endif %}">{{ dia.fecha.day }}</span>
           </div>
           {% for t in dia.tareas %}
-            <a href="{% url 'calendario_editar' t.id %}"
+            <a href="{{ t.url }}"
                class="d-block small text-truncate rounded px-1 mb-1 text-decoration-none"
-               style="background: {% if t.estado == 'Hecha' %}#e9ecef{% elif t.vencida %}#f8d7da{% else %}#dfe3fb{% endif %};
+               style="background: {% if t.estado == 'Hecha' %}#e9ecef{% elif t.color_fondo %}{{ t.color_fondo }}{% elif t.vencida %}#f8d7da{% else %}#dfe3fb{% endif %};
                       color: {% if t.estado == 'Hecha' %}#6c757d{% else %}#2E3092{% endif %};
                       {% if t.estado == 'Hecha' %}text-decoration: line-through;{% endif %}"
-               title="{{ t.titulo }}{% if t.responsable %} — {{ t.responsable }}{% endif %}">
+               title="{{ t.titulo }}{% if t.responsable %} — {{ t.responsable }}{% endif %} ({{ t.estado }})">
               {{ t.titulo }}
             </a>
           {% endfor %}
@@ -53,10 +61,12 @@
       {% for semana in semanas %}{% for dia in semana %}{% if dia.en_mes %}{% for t in dia.tareas %}
       <tr {% if t.vencida %}class="table-danger"{% endif %}>
         <td>
+          {% if t.tipo == 'tarea' %}
           <form method="post" action="{% url 'calendario_marcar' t.id %}">
             {% csrf_token %}
             <input type="checkbox" class="form-check-input" onchange="this.form.submit()" {% if t.estado == 'Hecha' %}checked{% endif %}>
           </form>
+          {% endif %}
         </td>
         <td data-orden="{{ t.fecha|date:'Y-m-d' }}">{{ t.fecha|date:"d/m/Y" }}</td>
         <td class="{% if t.estado == 'Hecha' %}text-decoration-line-through text-muted{% endif %}">{{ t.titulo }}</td>
@@ -66,7 +76,7 @@
             {% if t.vencida %}Vencida{% else %}{{ t.estado }}{% endif %}
           </span>
         </td>
-        <td><a href="{% url 'calendario_editar' t.id %}" class="btn btn-sm btn-outline-primary">Editar</a></td>
+        <td><a href="{{ t.url }}" class="btn btn-sm btn-outline-primary">{% if t.tipo == 'tarea' %}Editar{% else %}Ver{% endif %}</a></td>
       </tr>
       {% endfor %}{% endif %}{% endfor %}{% endfor %}
     </tbody>
