@@ -19,7 +19,15 @@ from .models import (
 
 
 def _widgets_fecha(*nombres):
-    return {n: forms.DateInput(attrs={"type": "date", "class": "form-control"}) for n in nombres}
+    # format="%Y-%m-%d" es obligatorio: el <input type="date"> del navegador
+    # solo entiende fechas en formato AAAA-MM-DD. Sin esto, Django renderiza
+    # el valor guardado con el formato regional (DD/MM/AAAA), el navegador no
+    # lo reconoce y el campo aparece vacío al editar — aunque el dato SÍ está
+    # guardado en la base de datos (no se pierde nada).
+    return {
+        n: forms.DateInput(attrs={"type": "date", "class": "form-control"}, format="%Y-%m-%d")
+        for n in nombres
+    }
 
 
 class ListaDesplegableWidget(forms.TextInput):
@@ -111,7 +119,19 @@ class RiesgosActividadForm(forms.Form):
 class IndicadorForm(BaseModelForm):
     class Meta:
         model = Indicador
-        fields = ["nombre", "descripcion", "tipo", "periodicidad", "unidad", "activo", "orden"]
+        fields = [
+            "nombre", "descripcion", "tipo", "periodicidad", "unidad", "activo", "orden",
+            "actividades_fuente",
+        ]
+        widgets = {
+            "actividades_fuente": forms.SelectMultiple(attrs={"size": 8}),
+        }
+        help_texts = {
+            "actividades_fuente": 'Solo aplica si el tipo elegido arriba es "% de '
+            'subactividades finalizadas de una o más actividades/proyectos" — ahí sí elige '
+            "de cuáles actividades se cuentan las subactividades (mantén Ctrl/Cmd presionado "
+            "para elegir varias). Para los demás tipos, déjalo vacío.",
+        }
 
 
 class RegistroIndicadorForm(BaseModelForm):

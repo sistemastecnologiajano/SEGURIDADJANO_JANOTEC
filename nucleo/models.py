@@ -22,6 +22,7 @@ from datetime import date, timedelta
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models
+from django.db.models.functions import Coalesce
 from django.utils import timezone
 
 
@@ -649,6 +650,20 @@ class Indicador(models.Model):
             "AUTO_ACTIVOS_CRITICOS",
             "Automático — activos críticos validados (calculado desde Validaciones)",
         )
+        AUTO_SUBACTIVIDADES_PROYECTO = (
+            "AUTO_SUBACTIVIDADES_PROYECTO",
+            "Automático — % de subactividades finalizadas de una o más actividades/proyectos",
+        )
+        AUTO_SEGUIMIENTO_PROVEEDORES = (
+            "AUTO_SEGUIMIENTO_PROVEEDORES",
+            "Automático — seguimiento a proveedores en novedades de activos críticos "
+            "(calculado desde Validaciones)",
+        )
+        AUTO_CONTINUIDAD_OPERATIVA = (
+            "AUTO_CONTINUIDAD_OPERATIVA",
+            "Automático — promedio entre % Activos Críticos y % Actividades con riesgo "
+            "gestionadas",
+        )
 
     class Periodicidad(models.TextChoices):
         MENSUAL = "MENSUAL", "Mensual"
@@ -671,6 +686,14 @@ class Indicador(models.Model):
         default=True, help_text="Si se desmarca, deja de aparecer en el listado principal (no se borra)."
     )
     orden = models.PositiveIntegerField(default=0, help_text="Para ordenar las tarjetas del listado.")
+    actividades_fuente = models.ManyToManyField(
+        "Actividad", blank=True, related_name="indicadores_fuente",
+        verbose_name="Actividades/proyectos de origen",
+        help_text='Solo para el tipo "% de subactividades finalizadas": de cuál(es) '
+        "actividad(es) o proyecto(s) se cuentan las subactividades (ej. el proyecto de "
+        "Modernización Tecnológica, o la actividad de Gestión de Solicitudes). No aplica a "
+        "los demás tipos de indicador.",
+    )
 
     class Meta:
         verbose_name = "Indicador"
@@ -780,20 +803,139 @@ class Indicador(models.Model):
             "total_bruto": total_bruto, "faltantes": faltantes,
         }
 
+    def detalle_subactividades_proyecto(self, anio, periodo):
+        """Para indicadores tipo AUTO_SUBACTIVIDADES_PROYECTO: cuenta las
+        subactividades de las actividades/proyectos configurados en
+        `actividades_fuente` cuya fecha de inicio cae dentro del periodo, y
+        de esas cuántas ya quedaron "Finalizado". Se recalcula en vivo cada
+        vez que se consulta — si llega una solicitud nueva a mitad de
+        periodo y sigue "En proceso", simplemente no cuenta todavía como
+        lograda hasta que alguien la marque Finalizado (no hace falta
+        excluir periodos en curso, a diferencia de Activos Críticos)."""
+        inicio, fin = self.rango_fechas(anio, periodo)
+        subactividades = (
+            Subactividad.objects.filter(actividad__in=self.actividades_fuente.all())
+            .annotate(
+                _fecha_ref=Coalesce("fecha_inicio", "fecha_compromiso", "fecha_fin")
+            )
+            .filter(_fecha_ref__gte=inicio, _fecha_ref__lte=fin)
+            .select_related("actividad")
+            .order_by("actividad__id", "_fecha_ref")
+        )
+        filas = [
+            {
+                "subactividad": s, "actividad": s.actividad, "estado": s.estado,
+                "finalizado": s.estado == "Finalizado",
+            }
+            for s in subactividades
+        ]
+        total = len(filas)
+        finalizadas = sum(1 for f in filas if f["finalizado"])
+        return {"filas": filas, "meta": total, "valor": finalizadas, "inicio": inicio, "fin": fin}
+
+    def detalle_seguimiento_proveedores(self, anio, periodo):
+        """Para indicadores tipo AUTO_SEGUIMIENTO_PROVEEDORES: una "novedad"
+        es una Validación con resultado Intermitente o Fallo sobre un activo
+        crítico que SÍ tiene proveedor asignado (servicio de terceros); un
+        "seguimiento" es que, de esas, el campo `seguimiento_proveedor` de
+        la validación quede en "Sí"."""
+        inicio, fin = self.rango_fechas(anio, periodo)
+        novedades_qs = (
+            Validacion.objects.filter(
+                fecha_validacion__gte=inicio, fecha_validacion__lte=fin,
+                resultado__in=["Intermitente", "Fallo"],
+            )
+            .exclude(activo__proveedor="")
+            .select_related("activo")
+            .order_by("activo__servicio", "fecha_validacion")
+        )
+        filas = [
+            {
+                "validacion": v, "activo": v.activo, "mes": v.fecha_validacion,
+                "con_seguimiento": v.seguimiento_proveedor.strip().lower() == "sí"
+                or v.seguimiento_proveedor.strip().lower() == "si",
+            }
+            for v in novedades_qs
+        ]
+        total = len(filas)
+        con_seguimiento = sum(1 for f in filas if f["con_seguimiento"])
+        return {"filas": filas, "meta": total, "valor": con_seguimiento, "inicio": inicio, "fin": fin}
+
+    def detalle_actividades_con_riesgo(self, anio, periodo):
+        """Para el componente de Continuidad Operativa: de todas las
+        Actividades que tienen al menos un Riesgo asociado (tabla
+        RelacionActividadRiesgo) y cuya fecha de inicio cae en el periodo,
+        cuántas ya quedaron "Finalizado"."""
+        inicio, fin = self.rango_fechas(anio, periodo)
+        actividades = (
+            Actividad.objects.filter(riesgos__isnull=False)
+            .annotate(
+                _fecha_ref=Coalesce("fecha_inicio", "fecha_compromiso", "fecha_final")
+            )
+            .filter(_fecha_ref__gte=inicio, _fecha_ref__lte=fin)
+            .distinct()
+            .order_by("id")
+        )
+        filas = [
+            {"actividad": a, "estado": a.estado, "finalizada": a.estado == "Finalizado"}
+            for a in actividades
+        ]
+        total = len(filas)
+        finalizadas = sum(1 for f in filas if f["finalizada"])
+        return {"filas": filas, "meta": total, "valor": finalizadas, "inicio": inicio, "fin": fin}
+
+    def detalle_continuidad_operativa(self, anio, periodo):
+        """Continuidad Operativa = promedio simple entre el % de Revisión de
+        Activos Críticos y el % de Actividades con riesgo asociado que ya
+        quedaron gestionadas (Finalizado) en el periodo."""
+        activos = self.detalle_activos_criticos(anio, periodo)
+        pct_activos = (
+            min(100, round(activos["valor"] / activos["meta"] * 100, 1)) if activos["meta"] else None
+        )
+        actividades = self.detalle_actividades_con_riesgo(anio, periodo)
+        pct_actividades = (
+            min(100, round(actividades["valor"] / actividades["meta"] * 100, 1))
+            if actividades["meta"] else None
+        )
+        partes = [p for p in (pct_activos, pct_actividades) if p is not None]
+        promedio = round(sum(partes) / len(partes), 1) if partes else None
+        return {
+            "pct_activos": pct_activos, "pct_actividades": pct_actividades, "promedio": promedio,
+            "detalle_activos": activos, "detalle_actividades": actividades,
+            "inicio": actividades["inicio"], "fin": actividades["fin"],
+        }
+
     def calcular_valor_automatico(self, anio, periodo):
         """Para indicadores de tipo AUTO_*, calcula el valor logrado real a
         partir de los datos de la plataforma (sin que nadie lo digite)."""
-        if self.tipo != self.Tipo.AUTO_ACTIVOS_CRITICOS:
-            return None
-        return self.detalle_activos_criticos(anio, periodo)["valor"]
+        if self.tipo == self.Tipo.AUTO_ACTIVOS_CRITICOS:
+            return self.detalle_activos_criticos(anio, periodo)["valor"]
+        if self.tipo == self.Tipo.AUTO_SUBACTIVIDADES_PROYECTO:
+            return self.detalle_subactividades_proyecto(anio, periodo)["valor"]
+        if self.tipo == self.Tipo.AUTO_SEGUIMIENTO_PROVEEDORES:
+            return self.detalle_seguimiento_proveedores(anio, periodo)["valor"]
+        if self.tipo == self.Tipo.AUTO_CONTINUIDAD_OPERATIVA:
+            # El "valor" ya es directamente el % promedio (no un conteo a
+            # dividir) — por eso la meta se fija en 100 (ver más abajo), así
+            # el % de cumplimiento que ya calcula RegistroIndicador queda
+            # igual al promedio, sin tener que duplicar esa lógica aquí.
+            return self.detalle_continuidad_operativa(anio, periodo)["promedio"]
+        return None
 
     def calcular_meta_automatica(self, anio, periodo):
-        """La meta tampoco se escribe a mano para este tipo de indicador: se
-        calcula contando cuántas casillas activo×mes se exigían en el
-        periodo (ver `detalle_activos_criticos`)."""
-        if self.tipo != self.Tipo.AUTO_ACTIVOS_CRITICOS:
-            return None
-        return self.detalle_activos_criticos(anio, periodo)["meta"]
+        """La meta tampoco se escribe a mano para estos tipos de indicador:
+        se calcula sola a partir de los mismos datos (ver cada método
+        `detalle_*` de arriba)."""
+        if self.tipo == self.Tipo.AUTO_ACTIVOS_CRITICOS:
+            return self.detalle_activos_criticos(anio, periodo)["meta"]
+        if self.tipo == self.Tipo.AUTO_SUBACTIVIDADES_PROYECTO:
+            return self.detalle_subactividades_proyecto(anio, periodo)["meta"]
+        if self.tipo == self.Tipo.AUTO_SEGUIMIENTO_PROVEEDORES:
+            return self.detalle_seguimiento_proveedores(anio, periodo)["meta"]
+        if self.tipo == self.Tipo.AUTO_CONTINUIDAD_OPERATIVA:
+            valor = self.detalle_continuidad_operativa(anio, periodo)["promedio"]
+            return 100 if valor is not None else None
+        return None
 
     def periodos_disponibles(self):
         if self.periodicidad == self.Periodicidad.MENSUAL:

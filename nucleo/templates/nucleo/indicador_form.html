@@ -27,6 +27,10 @@
       <div class="col-md-4">
         <label class="form-label">Orden en el listado</label>{{ form.orden }}
       </div>
+      <div class="col-12">
+        <label class="form-label">Actividades/proyectos de origen</label>{{ form.actividades_fuente }}
+        <div class="form-text">{{ form.actividades_fuente.help_text }}</div>
+      </div>
       <div class="col-md-4 d-flex align-items-end">
         <div class="form-check">
           {{ form.activo }}

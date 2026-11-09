@@ -635,6 +635,46 @@ def detalle_indicador(request, pk):
             min(100, round(vista["valor"] / vista["meta"] * 100, 1)) if vista.get("meta") else None
         )
 
+    elif indicador.tipo == Indicador.Tipo.AUTO_CONTINUIDAD_OPERATIVA:
+        anio_actual, periodo_actual = indicador.periodo_actual()
+        try:
+            anio = int(request.GET.get("anio", anio_actual))
+        except (TypeError, ValueError):
+            anio = anio_actual
+        try:
+            periodo = int(request.GET.get("periodo", periodo_actual))
+        except (TypeError, ValueError):
+            periodo = periodo_actual
+        vista = indicador.detalle_continuidad_operativa(anio, periodo)
+        contexto["vista"] = vista
+        contexto["anio_seleccionado"] = anio
+        contexto["periodo_seleccionado"] = periodo
+        contexto["anios_disponibles"] = range(anio_actual - 2, anio_actual + 1)
+
+    elif indicador.tipo in (
+        Indicador.Tipo.AUTO_SUBACTIVIDADES_PROYECTO, Indicador.Tipo.AUTO_SEGUIMIENTO_PROVEEDORES,
+    ):
+        anio_actual, periodo_actual = indicador.periodo_actual()
+        try:
+            anio = int(request.GET.get("anio", anio_actual))
+        except (TypeError, ValueError):
+            anio = anio_actual
+        try:
+            periodo = int(request.GET.get("periodo", periodo_actual))
+        except (TypeError, ValueError):
+            periodo = periodo_actual
+        if indicador.tipo == Indicador.Tipo.AUTO_SUBACTIVIDADES_PROYECTO:
+            vista = indicador.detalle_subactividades_proyecto(anio, periodo)
+        else:
+            vista = indicador.detalle_seguimiento_proveedores(anio, periodo)
+        contexto["vista"] = vista
+        contexto["anio_seleccionado"] = anio
+        contexto["periodo_seleccionado"] = periodo
+        contexto["anios_disponibles"] = range(anio_actual - 2, anio_actual + 1)
+        contexto["cumplimiento_pct_vista"] = (
+            min(100, round(vista["valor"] / vista["meta"] * 100, 1)) if vista.get("meta") else None
+        )
+
     return render(request, "nucleo/indicador_detalle.html", contexto)
 
 

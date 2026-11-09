@@ -22,7 +22,7 @@
 <p class="text-muted">{{ indicador.descripcion }}</p>
 {% endif %}
 
-{% if vista %}
+{% if indicador.tipo == 'AUTO_ACTIVOS_CRITICOS' %}
 <form method="get" class="row g-2 align-items-end mb-3">
   <div class="col-auto">
     <label class="form-label mb-0 small">Año</label>
@@ -120,6 +120,159 @@
   </tbody>
 </table>
 </div>
+
+{% elif indicador.tipo == 'AUTO_CONTINUIDAD_OPERATIVA' %}
+<form method="get" class="row g-2 align-items-end mb-3">
+  <div class="col-auto">
+    <label class="form-label mb-0 small">Año</label>
+    <select name="anio" class="form-select form-select-sm" onchange="this.form.submit()">
+      {% for a in anios_disponibles %}<option value="{{ a }}" {% if a == anio_seleccionado %}selected{% endif %}>{{ a }}</option>{% endfor %}
+    </select>
+  </div>
+  <div class="col-auto">
+    <label class="form-label mb-0 small">Periodo</label>
+    <select name="periodo" class="form-select form-select-sm" onchange="this.form.submit()">
+      {% for n, nombre in indicador.periodos_disponibles %}<option value="{{ n }}" {% if n == periodo_seleccionado %}selected{% endif %}>{{ nombre }}</option>{% endfor %}
+    </select>
+  </div>
+  <div class="col-auto">
+    <button class="btn btn-outline-secondary btn-sm">Actualizar</button>
+  </div>
+</form>
+
+<div class="row g-3 mb-3">
+  <div class="col-md-4">
+    <div class="card p-3 text-center">
+      <div class="text-muted small">% Revisión Activos Críticos</div>
+      <div class="display-6
+        {% if vista.pct_activos >= 80 %}text-success
+        {% elif vista.pct_activos >= 50 %}text-warning
+        {% else %}text-danger{% endif %}">{{ vista.pct_activos|default:"—" }}%</div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card p-3 text-center">
+      <div class="text-muted small">% Actividades con riesgo gestionadas</div>
+      <div class="display-6
+        {% if vista.pct_actividades >= 80 %}text-success
+        {% elif vista.pct_actividades >= 50 %}text-warning
+        {% else %}text-danger{% endif %}">{{ vista.pct_actividades|default:"—" }}%</div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card p-3 text-center">
+      <div class="text-muted small">Continuidad Operativa (promedio)</div>
+      <div class="display-6
+        {% if vista.promedio >= 80 %}text-success
+        {% elif vista.promedio >= 50 %}text-warning
+        {% else %}text-danger{% endif %}">{{ vista.promedio|default:"—" }}%</div>
+    </div>
+  </div>
+</div>
+
+<p class="text-muted small">El detalle mes a mes de los activos críticos (cuáles faltaron, cuáles ya se validaron) se puede revisar completo en el indicador <a href="{% url 'indicador_lista' %}">"Activos críticos"</a>. Aquí abajo solo el detalle de la otra mitad: las actividades con riesgo asociado.</p>
+
+<div class="card mb-3">
+<table class="table table-hover mb-0 tabla-ordenable">
+  <thead><tr><th>Actividad/Proyecto (con riesgo asociado)</th><th>Estado</th></tr></thead>
+  <tbody>
+    {% for f in vista.detalle_actividades.filas %}
+    <tr>
+      <td><a href="{% url 'actividad_detalle' f.actividad.id %}">{{ f.actividad.id }} — {{ f.actividad.nombre }}</a></td>
+      <td>{% if f.finalizada %}<span class="badge bg-success">Finalizado</span>{% else %}<span class="badge bg-secondary">{{ f.estado|default:"Sin estado" }}</span>{% endif %}</td>
+    </tr>
+    {% empty %}
+    <tr><td colspan="2" class="text-center text-muted py-4">No hay actividades con riesgo asociado en este periodo.</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+</div>
+
+{% elif indicador.tipo == 'AUTO_SUBACTIVIDADES_PROYECTO' or indicador.tipo == 'AUTO_SEGUIMIENTO_PROVEEDORES' %}
+<form method="get" class="row g-2 align-items-end mb-3">
+  <div class="col-auto">
+    <label class="form-label mb-0 small">Año</label>
+    <select name="anio" class="form-select form-select-sm" onchange="this.form.submit()">
+      {% for a in anios_disponibles %}<option value="{{ a }}" {% if a == anio_seleccionado %}selected{% endif %}>{{ a }}</option>{% endfor %}
+    </select>
+  </div>
+  <div class="col-auto">
+    <label class="form-label mb-0 small">Periodo</label>
+    <select name="periodo" class="form-select form-select-sm" onchange="this.form.submit()">
+      {% for n, nombre in indicador.periodos_disponibles %}<option value="{{ n }}" {% if n == periodo_seleccionado %}selected{% endif %}>{{ nombre }}</option>{% endfor %}
+    </select>
+  </div>
+  <div class="col-auto">
+    <button class="btn btn-outline-secondary btn-sm">Actualizar</button>
+  </div>
+</form>
+
+<div class="row g-3 mb-3">
+  <div class="col-md-4">
+    <div class="card p-3 text-center">
+      <div class="text-muted small">
+        {% if indicador.tipo == 'AUTO_SUBACTIVIDADES_PROYECTO' %}Subactividades programadas{% else %}Novedades{% endif %}
+      </div>
+      <div class="display-6">{{ vista.meta }}</div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card p-3 text-center">
+      <div class="text-muted small">
+        {% if indicador.tipo == 'AUTO_SUBACTIVIDADES_PROYECTO' %}Subactividades finalizadas{% else %}Con seguimiento{% endif %}
+      </div>
+      <div class="display-6">{{ vista.valor }}</div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card p-3 text-center">
+      <div class="text-muted small">% Cumplimiento</div>
+      <div class="display-6
+        {% if cumplimiento_pct_vista >= 80 %}text-success
+        {% elif cumplimiento_pct_vista >= 50 %}text-warning
+        {% else %}text-danger{% endif %}">{{ cumplimiento_pct_vista|default:"—" }}%</div>
+    </div>
+  </div>
+</div>
+
+{% if indicador.tipo == 'AUTO_SUBACTIVIDADES_PROYECTO' %}
+<div class="card mb-3">
+<table class="table table-hover mb-0 tabla-ordenable">
+  <thead><tr><th>Actividad/Proyecto</th><th>Subactividad</th><th>Estado</th></tr></thead>
+  <tbody>
+    {% for f in vista.filas %}
+    <tr>
+      <td><a href="{% url 'actividad_detalle' f.actividad.id %}">{{ f.actividad.id }} — {{ f.actividad.nombre }}</a></td>
+      <td><a href="{% url 'subactividad_detalle' f.subactividad.id_detalle %}">{{ f.subactividad.nombre }}</a></td>
+      <td>{% if f.finalizado %}<span class="badge bg-success">Finalizado</span>{% else %}<span class="badge bg-secondary">{{ f.estado|default:"Sin estado" }}</span>{% endif %}</td>
+    </tr>
+    {% empty %}
+    <tr><td colspan="3" class="text-center text-muted py-4">No hay subactividades registradas en este periodo para las actividades configuradas en este indicador.</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+</div>
+{% else %}
+<div class="card mb-3">
+<table class="table table-hover mb-0 tabla-ordenable">
+  <thead><tr><th>Servicio</th><th>Proveedor</th><th>Criticidad</th><th>Fecha validación</th><th>Resultado</th><th>Seguimiento</th></tr></thead>
+  <tbody>
+    {% for f in vista.filas %}
+    <tr>
+      <td><a href="{% url 'activo_detalle' f.activo.id_servicio %}">{{ f.activo.servicio }}</a></td>
+      <td>{{ f.activo.proveedor }}</td>
+      <td>{{ f.activo.criticidad }}</td>
+      <td>{{ f.mes|date:"d/m/Y" }}</td>
+      <td>{{ f.validacion.resultado }}</td>
+      <td>{% if f.con_seguimiento %}<span class="badge bg-success">Sí</span>{% else %}<span class="badge bg-danger">No</span>{% endif %}</td>
+    </tr>
+    {% empty %}
+    <tr><td colspan="6" class="text-center text-muted py-4">No hay novedades (validaciones Intermitente/Fallo en activos con proveedor) en este periodo.</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+</div>
+{% endif %}
 {% endif %}
 
 <h5 class="mb-2">Historial de registros del indicador</h5>

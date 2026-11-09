@@ -168,12 +168,8 @@ th.ordenable.orden-desc:after { content: " \2193"; opacity: .9; }
   padding: 2rem;
   text-align: center;
 }
-.login-panel .jano-marca { flex-direction: column; margin-top: 1rem; }
-.login-panel .jano-marca__icono { width: 64px; height: 64px; }
-.login-panel .jano-marca__icono::before,
-.login-panel .jano-marca__icono::after { width: 24px; height: 24px; }
-.login-panel .jano-marca__texto strong { font-size: 1.9rem; }
-.login-panel .lema { margin-top: 1rem; font-weight: 600; opacity: .95; }
+.login-panel__logo { width: min(280px, 60%); height: auto; }
+.login-panel .lema { margin-top: 1.25rem; font-weight: 600; font-size: 1.05rem; opacity: .95; }
 
 @media (max-width: 991px) {
   .layout-app { flex-direction: column; }
