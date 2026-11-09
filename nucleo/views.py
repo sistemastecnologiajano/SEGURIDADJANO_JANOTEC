@@ -150,7 +150,7 @@ def guardar_actividad(request, pk=None):
     form = ActividadForm(request.POST or None, request.FILES or None, instance=actividad)
     riesgos_form = RiesgosActividadForm(
         request.POST or None,
-        initial={"codigos_riesgo": ", ".join(actividad.codigos_riesgo) if actividad else ""},
+        initial=RiesgosActividadForm.initial_desde(actividad),
     )
     if request.method == "POST" and form.is_valid() and riesgos_form.is_valid():
         es_nueva = actividad is None
@@ -167,6 +167,7 @@ def guardar_actividad(request, pk=None):
         return redirect("actividad_detalle", pk=actividad.id)
     return render(request, "nucleo/actividad_form.html", {
         "form": form, "riesgos_form": riesgos_form, "actividad": actividad,
+        "riesgos_catalogo": Riesgo.objects.order_by("codigo"),
     })
 
 

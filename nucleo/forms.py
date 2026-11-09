@@ -99,17 +99,47 @@ class ActividadForm(BaseModelForm):
 class RiesgosActividadForm(forms.Form):
     """Reemplaza por completo la lista de códigos de riesgo asociados a una
     actividad — mismo comportamiento de saveRelacionesActividad() del Apps
-    Script (reemplazo total, no incremental)."""
+    Script (reemplazo total, no incremental).
 
-    codigos_riesgo = forms.CharField(
-        label="Códigos de riesgo (separados por coma)",
+    `riesgos_catalogo` es la lista de casillas (código + nombre, con la
+    descripción como ayuda) que se llena en __init__ con lo que exista en el
+    catálogo de Riesgo en ese momento. `otros_codigos` es un campo de texto
+    aparte, para códigos sueltos que ya estaban guardados pero que todavía
+    no tienen un Riesgo creado en el catálogo (no se pierden, pero no salen
+    como casilla porque no hay nada que mostrar de ellos todavía)."""
+
+    riesgos_catalogo = forms.ModelMultipleChoiceField(
+        label="Riesgos asociados",
+        queryset=Riesgo.objects.all(),
         required=False,
-        widget=forms.TextInput(attrs={"class": "form-control", "placeholder": "R-01, R-02"}),
+        widget=forms.CheckboxSelectMultiple,
+    )
+    otros_codigos = forms.CharField(
+        label="Otros códigos (que todavía no estén en el catálogo de riesgos, separados por coma)",
+        required=False,
+        widget=forms.TextInput(attrs={"class": "form-control", "placeholder": "R-99"}),
     )
 
+    @staticmethod
+    def initial_desde(actividad):
+        """Arma el `initial` de este formulario a partir de los códigos que
+        ya tenga guardados la actividad, separando los que sí existen en el
+        catálogo (van marcados como casilla) de los que no (quedan en el
+        campo de texto aparte, sin perderlos)."""
+        if actividad is None:
+            return {}
+        codigos_actuales = set(actividad.codigos_riesgo)
+        codigos_catalogo = set(Riesgo.objects.values_list("codigo", flat=True))
+        return {
+            "riesgos_catalogo": list(codigos_actuales & codigos_catalogo),
+            "otros_codigos": ", ".join(sorted(codigos_actuales - codigos_catalogo)),
+        }
+
     def guardar(self, actividad):
-        crudos = self.cleaned_data["codigos_riesgo"]
-        codigos = {c.strip().upper() for c in crudos.split(",") if c.strip()}
+        del_catalogo = {r.codigo for r in self.cleaned_data["riesgos_catalogo"]}
+        crudos = self.cleaned_data["otros_codigos"]
+        otros = {c.strip().upper() for c in crudos.split(",") if c.strip()}
+        codigos = del_catalogo | otros
         RelacionActividadRiesgo.objects.filter(actividad=actividad).delete()
         RelacionActividadRiesgo.objects.bulk_create(
             [RelacionActividadRiesgo(actividad=actividad, codigo_riesgo=c) for c in codigos]

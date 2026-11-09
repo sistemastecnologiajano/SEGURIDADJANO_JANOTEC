@@ -40,8 +40,37 @@
       <div class="col-md-6">
         <label class="form-label">Relacionado con riesgos</label>{{ form.relacionado_con_riesgos }}
       </div>
+      <div class="col-12">
+        <label class="form-label">Riesgos asociados</label>
+        <input type="text" class="form-control form-control-sm mb-2"
+               placeholder="Filtro rápido (busca por código o nombre)..." id="filtroRiesgos">
+        <div class="border rounded p-2" style="max-height: 280px; overflow-y: auto;" id="listaRiesgos">
+          {% for r in riesgos_catalogo %}
+          <div class="form-check py-1 border-bottom" data-texto-filtro="{{ r.codigo|lower }} {{ r.nombre|lower }}">
+            <input class="form-check-input" type="checkbox" name="riesgos_catalogo" value="{{ r.codigo }}"
+                   id="riesgo_{{ r.codigo }}" {% if r.codigo in riesgos_form.riesgos_catalogo.value %}checked{% endif %}>
+            <label class="form-check-label" for="riesgo_{{ r.codigo }}">
+              <strong>{{ r.codigo }}</strong> — {{ r.nombre }}
+              {% if r.nivel %}<span class="badge bg-secondary">{{ r.nivel }}</span>{% endif %}
+              {% if r.descripcion %}<br><small class="text-muted">{{ r.descripcion }}</small>{% endif %}
+            </label>
+          </div>
+          {% empty %}
+          <p class="text-muted small mb-0">
+            Todavía no hay riesgos creados en el catálogo —
+            <a href="{% url 'riesgo_nuevo' %}" target="_blank">créalos aquí primero</a>.
+          </p>
+          {% endfor %}
+        </div>
+        <div class="form-text">
+          ¿No encuentras el riesgo que necesitas?
+          <a href="{% url 'riesgo_nuevo' %}" target="_blank">créalo en el catálogo</a> (se abre en otra
+          pestaña) y recarga esta página para que aparezca en la lista.
+        </div>
+      </div>
       <div class="col-md-6">
-        <label class="form-label">Códigos de riesgo asociados</label>{{ riesgos_form.codigos_riesgo }}
+        <label class="form-label">{{ riesgos_form.otros_codigos.label }}</label>{{ riesgos_form.otros_codigos }}
+        <div class="form-text">Solo para códigos que ya tenías guardados y que todavía no están en el catálogo de arriba.</div>
       </div>
       <div class="col-12">
         <label class="form-label">Evidencia</label>{{ form.evidencia }}
@@ -79,4 +108,15 @@
   <button type="submit" class="btn btn-primary">Guardar</button>
   <a href="{% if actividad %}{% url 'actividad_detalle' actividad.id %}{% else %}{% url 'actividad_lista' %}{% endif %}" class="btn btn-outline-secondary">Cancelar</a>
 </form>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  document.getElementById("filtroRiesgos")?.addEventListener("input", function () {
+    const texto = this.value.trim().toLowerCase();
+    document.querySelectorAll("#listaRiesgos [data-texto-filtro]").forEach(function (fila) {
+      fila.style.display = fila.dataset.textoFiltro.includes(texto) ? "" : "none";
+    });
+  });
+</script>
 {% endblock %}
